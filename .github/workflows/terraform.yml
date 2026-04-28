@@ -12,7 +12,10 @@ permissions:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-
+env:
+      PROJECT_ID: ${{ secrets.PROJECT_ID }}
+      PROJECT_NUMBER: ${{ secrets.PROJECT_NUMBER }}
+      
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,8 +23,8 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: "projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
-          service_account: "terraform@YOUR_PROJECT_ID.iam.gserviceaccount.com"
+          workload_identity_provider: "projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
+          service_account: "terraform@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
