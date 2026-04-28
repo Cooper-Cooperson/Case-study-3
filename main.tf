@@ -33,16 +33,17 @@ resource "google_compute_subnetwork" "subnet_gke" {
   name          = "subnet-gke"
   ip_cidr_range = "10.10.0.0/20"
   region        = var.region
-  network       = google_compute_network.vpc.id
-  subnetwork = google_compute_subnetwork.subnet_gke.self_link
+  #network       = google_compute_network.vpc.id
+  network       = google_compute_network.vpc.self_link
 }
 
 resource "google_compute_subnetwork" "subnet_db" {
   name          = "subnet-db"
   ip_cidr_range = "10.20.0.0/20"
   region        = var.region
-  network       = google_compute_network.vpc.id
-  private_network = google_compute_network.vpc.self_link
+  network = google_compute_network.vpc.self_link
+  #network       = google_compute_network.vpc.id
+  #private_network = google_compute_network.vpc.self_link
 }
 
 
