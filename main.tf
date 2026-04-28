@@ -2,19 +2,6 @@ terraform {
   required_version = ">= 1.6.0"
 
   required_providers {
-  google {
-    project = var.project_id
-    region = var.region
-
-    impersonate_service_account = var.service_account
-}
-
-  google-beta {
-    project = var.project_id
-    region = var.region
-
-    impersonate_service_account = var.service_account
-}
     kubernetes = {
       source = "hashicorp/kubernetes"
       version = "~> 2.25"
@@ -26,11 +13,13 @@ provider "google" {
   project = var.project_id
   region  = var.region
   zone = var.zone
+  impersonate_service_account = var.service_account
 }
 
 provider "google-beta" {
   project = var.project_id
   region = var.region
+ impersonate_service_account = var.service_account
 }
 
 # VPC
