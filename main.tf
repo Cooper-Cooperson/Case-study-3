@@ -2,21 +2,21 @@ terraform {
   required_version = ">= 1.6.0"
 
   required_providers {
-  provider "google" {
+  google {
     project = var.project_id
-    region  = var.region
+    region = var.region
 
     impersonate_service_account = var.service_account
 }
 
-  provider "google-beta" {
+  google-beta {
     project = var.project_id
-    region  = var.region
+    region = var.region
 
     impersonate_service_account = var.service_account
 }
     kubernetes = {
-      source  = "hashicorp/kubernetes"
+      source = "hashicorp/kubernetes"
       version = "~> 2.25"
     }
   }
@@ -57,7 +57,7 @@ resource "google_compute_subnetwork" "subnet_db" {
 }
 
 
-
+/*
 # Firewall regels
 resource "google_compute_firewall" "allow_gke_to_sql" {
   name    = "allow-gke-to-sql"
@@ -333,3 +333,4 @@ resource "google_iam_workload_identity_pool_provider" "wi_provider" {
     "google.subject" = "assertion.sub"
   }
 }
+*/
