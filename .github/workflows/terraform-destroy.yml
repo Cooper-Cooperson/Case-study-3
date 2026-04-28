@@ -14,6 +14,7 @@ jobs:
     env:
       PROJECT_ID: ${{ secrets.PROJECT_ID }}
       PROJECT_NUMBER: ${{ secrets.PROJECT_NUMBER }}
+      REGION: ${{ secrets.REGION }}
 
     steps:
       - name: Checkout
@@ -32,4 +33,6 @@ jobs:
         run: terraform init
 
       - name: Terraform Destroy
-        run: terraform destroy -auto-approve -var="project_id=${{ env.PROJECT_ID }}"
+        run: terraform destroy -auto-approve \
+          -var="project_id=${{ env.PROJECT_ID }}" \
+          -var="region=${{ env.REGION }}"
