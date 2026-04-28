@@ -1,9 +1,6 @@
 name: Terraform
 
-on:
-  push:
-    branches: ["main"]
-  pull_request:
+on: workflow_dispatch
 
 permissions:
   id-token: write
@@ -11,8 +8,9 @@ permissions:
 
 jobs:
   terraform:
-    runs-on: ubuntu-latest
-env:
+    runs-on: self-hosted
+    
+    env:
       PROJECT_ID: ${{ secrets.PROJECT_ID }}
       PROJECT_NUMBER: ${{ secrets.PROJECT_NUMBER }}
       
@@ -37,14 +35,18 @@ env:
           service_account: "terraform@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v2
+        with:
+            terraform_wrapper: false  
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init 
+
+      - name: Terraform Validate
+        run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -out=tfplan
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
