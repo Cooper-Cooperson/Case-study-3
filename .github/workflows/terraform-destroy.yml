@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   destroy:
-    runs-on: runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     env:
       PROJECT_ID: ${{ secrets.PROJECT_ID }}
