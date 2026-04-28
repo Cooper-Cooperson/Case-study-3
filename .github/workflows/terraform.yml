@@ -20,6 +20,16 @@ env:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Create tfvars file
+        run: |
+         cat <<EOF > terraform.tfvars
+         project_id = "${{ secrets.PROJECT_ID }}"
+         project_number = ${{ secrets.PROJECT_NUMBER }}
+         region = "europe-west1"
+         zone = "europe-west1-4"
+         service_account = "terraform@project-96521d1d-c0a7-4c19-b4c.iam.gserviceaccount.com"
+         EOF
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
