@@ -19,6 +19,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Create tfvars file
+        run: |
+         cat <<EOF > terraform.tfvars
+         project_id = "${{ secrets.PROJECT_ID }}"
+         region = "${{ secrets.REGION }}"
+         zone = "${{ secrets.ZONE }}"
+         service_account = "${{ secrets.SERVICE_ACCOUNT }}"
+         EOF
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
