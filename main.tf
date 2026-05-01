@@ -164,7 +164,7 @@ resource "google_container_node_pool" "pool" {
     tags = ["gke-node"]
   }
 }
-
+/*
 # IAM
 resource "google_project_iam_binding" "devs_viewer" {
   project = var.project_id
@@ -183,7 +183,7 @@ resource "google_project_iam_binding" "platform_admins" {
     "user:${var.email}"
   ]
 }
-
+*/
 # Logging
 resource "google_bigquery_dataset" "logs" {
   dataset_id = "platform_logs"
@@ -204,7 +204,7 @@ resource "google_sql_database_instance" "db" {
   name = "app-db"
   database_version = "POSTGRES_15"
   region = var.region
-
+  deletion_protection = false
   depends_on = [
     google_service_networking_connection.private_vpc_connection
   ]
@@ -339,12 +339,12 @@ resource "kubernetes_deployment" "orchestrator" {
   }
 }
 
-resource "google_iam_workload_identity_pool" "wi_pool" {
+resource "google_iam_workload_identity_pool" "wip_pool" {
   workload_identity_pool_id = "gke-pool"
 }
 
 resource "google_iam_workload_identity_pool_provider" "wi_provider" {
-  workload_identity_pool_id = google_iam_workload_identity_pool.wi_pool.workload_identity_pool_id
+  workload_identity_pool_id = google_iam_workload_identity_pool.wip_pool.workload_identity_pool_id
   workload_identity_pool_provider_id = "gke-provider"
 
   oidc {
