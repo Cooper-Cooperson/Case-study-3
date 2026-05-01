@@ -17,3 +17,7 @@ variable service_account {
 variable school_ip  {
   type = string
 }
+
+variable email  {
+  type = string
+}

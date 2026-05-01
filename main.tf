@@ -45,7 +45,19 @@ resource "google_compute_subnetwork" "subnet_db" {
   #private_network = google_compute_network.vpc.self_link
 }
 
+resource "google_compute_global_address" "private_ip_range" {
+  name          = "sql-private-ip-range"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = 2o
+  network       = google_compute_network.vpc.self_link
+}
 
+resource "google_service_networking_connection" "private_vpc_connection" {
+  network = google_compute_network.vpc.self_link
+  service = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.private_ip_range.name]
+}
 
 # Firewall regels
 resource "google_compute_firewall" "allow_gke_to_sql" {
@@ -98,19 +110,19 @@ resource "google_compute_firewall" "gke_ssh" {
 # GKE cluster
 
 resource "google_container_cluster" "gke" {
-  name = "platform-gke"
-  location = var.region
+  name     = "platform-gke"
+  location = var.region 
 
-  network = google_compute_network.vpc.self_link
+  network    = google_compute_network.vpc.self_link
   subnetwork = google_compute_subnetwork.subnet_gke.self_link
 
   remove_default_node_pool = true
-  initial_node_count = 1
+  initial_node_count       = 1
 
-  ip_allocation_policy {}
+  ip_allocation_policy {} 
 
   network_policy {
-    enabled = true
+    enabled  = true
     provider = "CALICO"
   }
 
@@ -146,7 +158,7 @@ resource "google_project_iam_binding" "devs_viewer" {
   role = "roles/viewer"
 
   members = [
-    "group:dev-team@example.com"
+    "group:${var.email}"
   ]
 }
 
@@ -155,7 +167,7 @@ resource "google_project_iam_binding" "platform_admins" {
   role = "roles/owner"
 
   members = [
-    "group:platform-admins@example.com"
+    "group:${var.email}"
   ]
 }
 
@@ -169,7 +181,7 @@ resource "google_bigquery_dataset" "logs" {
 resource "google_logging_project_sink" "logs_to_bq" {
   name = "logs-to-bq"
   project = var.project_id
-  destination = "bigquery.googleapis.com/projects/YOUR_PROJECT_ID/datasets/${google_bigquery_dataset.logs.dataset_id}"
+  destination = "bigquery.googleapis.com/projects/${var.project_id}/datasets/${google_bigquery_dataset.logs.dataset_id}"
   filter = "resource.type=k8s_container OR resource.type=gce_instance"
 
   unique_writer_identity = true
@@ -179,6 +191,10 @@ resource "google_sql_database_instance" "db" {
   name = "app-db"
   database_version = "POSTGRES_15"
   region = var.region
+
+  depends_on = [
+    google_service_networking_connection.private_vpc_connection
+  ]
 
   settings {
     tier = "db-custom-2-7680"
