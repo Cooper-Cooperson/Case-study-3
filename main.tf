@@ -49,7 +49,7 @@ resource "google_compute_global_address" "private_ip_range" {
   name          = "sql-private-ip-range"
   purpose       = "VPC_PEERING"
   address_type  = "INTERNAL"
-  prefix_length = 2o
+  prefix_length = 20
   network       = google_compute_network.vpc.self_link
 }
 
