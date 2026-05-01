@@ -29,11 +29,20 @@ resource "google_compute_network" "vpc" {
 }
 
 resource "google_compute_subnetwork" "subnet_gke" {
-  name = "subnet-gke"
-  ip_cidr_range = "10.10.0.0/20"
-  region = var.region
-  #network = google_compute_network.vpc.id
-  network = google_compute_network.vpc.self_link
+  name          = "subnet-gke"
+  ip_cidr_range = "10.10.0.0/16"
+  region        = var.region
+  network       = google_compute_network.vpc.self_link
+
+  secondary_ip_range {
+    range_name    = "gke-pods"
+    ip_cidr_range = "10.10.1.0/24"
+  }
+
+  secondary_ip_range {
+    range_name    = "gke-services"
+    ip_cidr_range = "10.10.2.0/24"
+  }
 }
 
 resource "google_compute_subnetwork" "subnet_db" {
@@ -57,6 +66,7 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   network = google_compute_network.vpc.self_link
   service = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_ip_range.name]
+  deletion_policy = "ABANDON" 
 }
 
 # Firewall regels
@@ -119,7 +129,9 @@ resource "google_container_cluster" "gke" {
   remove_default_node_pool = true
   initial_node_count       = 1
 
-  ip_allocation_policy {} 
+  ip_allocation_policy {
+    cluster_secondary_range_name  = "gke-pods"
+    services_secondary_range_name = "gke-services"} 
 
   network_policy {
     enabled  = true
@@ -158,7 +170,7 @@ resource "google_project_iam_binding" "devs_viewer" {
   role = "roles/viewer"
 
   members = [
-    "group:${var.email}"
+    "user:${var.email}"
   ]
 }
 
@@ -167,7 +179,7 @@ resource "google_project_iam_binding" "platform_admins" {
   role = "roles/owner"
 
   members = [
-    "group:${var.email}"
+    "user:${var.email}"
   ]
 }
 
