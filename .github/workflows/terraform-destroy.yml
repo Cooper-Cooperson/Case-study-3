@@ -13,11 +13,21 @@ jobs:
 
     env:
       PROJECT_ID: ${{ secrets.PROJECT_ID }}
-      PROJECT_NUMBER: ${{ secrets.ROJECT_NUMBER }}
+      PROJECT_NUMBER: ${{ secrets.PROJECT_NUMBER }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Create tfvars file
+        run: |
+         cat <<EOF > terraform.tfvars
+         project_id = "${{ secrets.PROJECT_ID }}"
+         region = "${{ secrets.REGION }}"
+         zone = "${{ secrets.ZONE }}"
+         service_account = "${{ secrets.SERVICE_ACCOUNT }}"
+         school_ip = "${{ secrets.SCHOOL_IP }}"
+         EOF
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -32,4 +42,4 @@ jobs:
         run: terraform init
 
       - name: Terraform Destroy
-        run: terraform destroy -auto-approve -var="project_id=${{ env.PROJECT_ID }}"
+        run: terraform destroy -auto-approve 
