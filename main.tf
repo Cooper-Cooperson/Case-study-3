@@ -101,7 +101,7 @@ resource "google_container_cluster" "gke" {
   location = var.region
 
   network = google_compute_network.vpc.self_link
-  subnetwork = google_compute_subnetwork.subnet.self_link
+  subnetwork = google_compute_subnetwork.subnet_gke.self_link
 
   remove_default_node_pool = true
   initial_node_count = 1
@@ -114,7 +114,7 @@ resource "google_container_cluster" "gke" {
   }
 
   workload_identity_config {
-    workload_pool = var.project_id".svc.id.goog"
+    workload_pool = "${var.project_id}.svc.id.goog"
   }
 
   logging_config {
@@ -133,7 +133,7 @@ resource "google_container_node_pool" "pool" {
   node_count = 3
 
   node_config {
-    machine_typ e = "e2-standard-4"
+    machine_type = "e2-standard-4"
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
     tags = ["gke-node"]
   }
@@ -196,13 +196,13 @@ resource "google_sql_database" "db_default" {
 }
 
 resource "google_storage_bucket" "app_data" {
-  name = var.project_id"-app-data"
+  name = "${var.project_id}-app-data"
   location = "EU"
   storage_class = "STANDARD"
 }
 
 resource "google_storage_bucket" "logs_archive" {
-  name = var.project_id"-logs-archive"
+  name = "${var.project_id}-logs-archive"
   location = "EU"
   storage_class = "NEARLINE"
 }
