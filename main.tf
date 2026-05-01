@@ -199,12 +199,14 @@ resource "google_storage_bucket" "app_data" {
   name = "${var.project_id}-app-data"
   location = "EU"
   storage_class = "STANDARD"
+  uniform_bucket_level_access = true
 }
 
 resource "google_storage_bucket" "logs_archive" {
   name = "${var.project_id}-logs-archive"
   location = "EU"
   storage_class = "NEARLINE"
+  uniform_bucket_level_access = true
 }
 
 data "google_client_config" "default" {}
