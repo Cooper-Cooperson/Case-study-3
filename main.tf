@@ -130,7 +130,7 @@ resource "google_container_cluster" "gke" {
   initial_node_count       = 1
 
   ip_allocation_policy {
-    cluster_secondary_range_name  = "gke-pods"
+    cluster_secondary_range_name  = "gke-pods",
     services_secondary_range_name = "gke-services"} 
 
   network_policy {
