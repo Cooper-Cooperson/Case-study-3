@@ -75,6 +75,7 @@ resource "google_compute_firewall" "deny_all_to_sql" {
     protocol = "all"
   }
 
+  source_ranges = ["0.0.0.0/32"]
   target_tags = ["cloud-sql"]
 }
 
@@ -314,7 +315,7 @@ resource "google_iam_workload_identity_pool" "wi_pool" {
 resource "google_iam_workload_identity_pool_provider" "wi_provider" {
   workload_identity_pool_id = google_iam_workload_identity_pool.wi_pool.workload_identity_pool_id
   workload_identity_pool_provider_id = "gke-provider"
-  
+
   oidc {
     issuer_uri = "https://container.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/clusters/${google_container_cluster.gke.name}"
   }
