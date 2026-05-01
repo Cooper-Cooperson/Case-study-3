@@ -13,3 +13,7 @@ variable zone {
 variable service_account {
   type = string
 }
+
+variable school_ip  {
+  type = string
+}
