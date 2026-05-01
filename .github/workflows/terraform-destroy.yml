@@ -26,6 +26,7 @@ jobs:
          region = "${{ secrets.REGION }}"
          zone = "${{ secrets.ZONE }}"
          service_account = "${{ secrets.SERVICE_ACCOUNT }}"
+         school_ip = "${{ secrets.SCHOOL_IP }}"
          EOF
 
       - name: Authenticate to Google Cloud
