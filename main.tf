@@ -55,7 +55,7 @@ resource "google_compute_firewall" "allow_gke_to_sql" {
   direction = "INGRESS"
   priority = 1000
 
-  allows {
+  allow {
     protocol = "tcp"
     ports = ["5432"]
   }
@@ -71,7 +71,7 @@ resource "google_compute_firewall" "deny_all_to_sql" {
   direction = "INGRESS"
   priority = 2000
 
-  denies {
+  deny {
     protocol = "all"
   }
 
@@ -85,7 +85,7 @@ resource "google_compute_firewall" "gke_ssh" {
   direction = "INGRESS"
   priority = 1000
 
-  allows {
+  allow {
     protocol = "tcp"
     ports = ["22"]
   }
@@ -185,7 +185,6 @@ resource "google_sql_database_instance" "db" {
     ip_configuration {
       ipv4_enabled = false
       private_network = google_compute_network.vpc.self_link
-      require_ssl = true
     }
   }
 }
@@ -250,7 +249,7 @@ resource "kubernetes_deployment" "portal" {
       spec {
         container {
           name = "portal"
-          image = "europe-west4-docker.pkg.dev/YOUR_PROJECT_ID/platform/portal:latest"
+          image = "europe-west4-docker.pkg.dev/${var.project_id}/platform/portal:latest"
           port { container_port = 8080 }
         }
       }
@@ -287,26 +286,24 @@ resource "kubernetes_deployment" "orchestrator" {
     }
 
     template {
-      metadata { labels = { app = "orchestrator" } }
+  metadata { labels = { app = "orchestrator" } }
 
-      spec {
-        container {
-          name = "orchestrator"
-          image = "europe-west4-docker.pkg.dev/YOUR_PROJECT_ID/platform/orchestrator:latest"
+  spec {
+    service_account_name = "orchestrator-sa"
 
-          env {
-            name = "PROJECT_ID"
-            value = var.project_id
-          }
+    container {
+      name = "orchestrator"
+      image = "europe-west4-docker.pkg.dev/${var.project_id}/platform/orchestrator:latest"
 
-          spec {
-          service_account_name = "orchestrator-sa"
-          }
-
-          port { container_port = 8080 }
-        }
+      env {
+        name = "PROJECT_ID"
+        value = var.project_id
       }
+
+      port { container_port = 8080 }
     }
+  }
+  }
   }
 }
 
@@ -317,6 +314,11 @@ resource "google_iam_workload_identity_pool" "wi_pool" {
 resource "google_iam_workload_identity_pool_provider" "wi_provider" {
   workload_identity_pool_id = google_iam_workload_identity_pool.wi_pool.workload_identity_pool_id
   workload_identity_pool_provider_id = "gke-provider"
+  
+  oidc {
+    issuer_uri = "https://container.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/clusters/${google_container_cluster.gke.name}"
+  }
+
   attribute_mapping = {
     "google.subject" = "assertion.sub"
   }
