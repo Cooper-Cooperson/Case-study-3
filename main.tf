@@ -341,7 +341,7 @@ resource "kubernetes_deployment" "orchestrator" {
   }
 }
 
-
+/*
 resource "google_iam_workload_identity_pool_provider" "wi_provider" {
   workload_identity_pool_id = "github-pool"
   workload_identity_pool_provider_id = "gke-provider"
@@ -354,7 +354,7 @@ resource "google_iam_workload_identity_pool_provider" "wi_provider" {
     "google.subject" = "assertion.sub"
   }
 }
-
+*/
 /*
 resource "google_iam_workload_identity_pool" "wid_pool" {
   workload_identity_pool_id = "gke-pool"
