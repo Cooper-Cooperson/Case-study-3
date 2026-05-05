@@ -339,7 +339,7 @@ resource "kubernetes_deployment" "orchestrator" {
   }
 }
 
-resource "google_iam_workload_identity_pool" "wip_pool" {
+resource "google_iam_workload_identity_pool" "wid_pool" {
   workload_identity_pool_id = "gke-pool"
 }
 
