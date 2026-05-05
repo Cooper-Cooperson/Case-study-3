@@ -121,7 +121,7 @@ resource "google_compute_firewall" "gke_ssh" {
 
 resource "google_container_cluster" "gke" {
   name = "platform-gke"
-  location = var.zone
+  location = var.region 
   networking_mode = "VPC_NATIVE"
   network = google_compute_network.vpc.self_link
   subnetwork = google_compute_subnetwork.subnet_gke.self_link
