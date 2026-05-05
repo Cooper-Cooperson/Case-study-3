@@ -344,7 +344,7 @@ resource "google_iam_workload_identity_pool" "wid_pool" {
 }
 
 resource "google_iam_workload_identity_pool_provider" "wi_provider" {
-  workload_identity_pool_id = google_iam_workload_identity_pool.wip_pool.workload_identity_pool_id
+  workload_identity_pool_id = google_iam_workload_identity_pool.wid_pool.workload_identity_pool_id
   workload_identity_pool_provider_id = "gke-provider"
 
   oidc {
