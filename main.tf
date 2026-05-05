@@ -339,10 +339,26 @@ resource "kubernetes_deployment" "orchestrator" {
   }
 }
 
-resource "google_iam_workload_identity_pool" "wid_pool" {
-  workload_identity_pool_id = "gke-pool"
+
+resource "google_iam_workload_identity_pool_provider" "wi_provider" {
+  workload_identity_pool_id = "github-pool"
+  workload_identity_pool_provider_id = "gke-provider"
+
+  oidc {
+    issuer_uri = "https://container.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/clusters/${google_container_cluster.gke.name}"
+  }
+
+  attribute_mapping = {
+    "google.subject" = "assertion.sub"
+  }
 }
 
+/*
+resource "google_iam_workload_identity_pool" "wid_pool" {
+  workload_identity_pool_id = "gke-pool"
+}*/
+
+/*
 resource "google_iam_workload_identity_pool_provider" "wi_provider" {
   workload_identity_pool_id = google_iam_workload_identity_pool.wid_pool.workload_identity_pool_id
   workload_identity_pool_provider_id = "gke-provider"
@@ -355,3 +371,4 @@ resource "google_iam_workload_identity_pool_provider" "wi_provider" {
     "google.subject" = "assertion.sub"
   }
 }
+*/
