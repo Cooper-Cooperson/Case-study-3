@@ -82,7 +82,7 @@ resource "google_compute_firewall" "allow_gke_to_sql" {
     ports = ["5432"]
   }
 
-  source_ranges = ["10.10.0.0/20"]   # GKE subnet var
+  source_ranges = ["10.50.0.0/20"]   # GKE subnet var
   target_tags = ["cloud-sql"]      # SQL instance tag
 }
 
@@ -120,14 +120,14 @@ resource "google_compute_firewall" "gke_ssh" {
 # GKE cluster
 
 resource "google_container_cluster" "gke" {
-  name     = "platform-gke"
+  name = "platform-gke"
   location = var.region 
-
-  network    = google_compute_network.vpc.self_link
+  networking_mode = "VPC_NATIVE"
+  network = google_compute_network.vpc.self_link
   subnetwork = google_compute_subnetwork.subnet_gke.self_link
 
   remove_default_node_pool = true
-  initial_node_count       = 1
+  initial_node_count = 1
 
   ip_allocation_policy {
     cluster_secondary_range_name  = "gke-pods"
@@ -135,7 +135,7 @@ resource "google_container_cluster" "gke" {
     } 
 
   network_policy {
-    enabled  = true
+    enabled = true
     provider = "CALICO"
   }
 
@@ -150,6 +150,7 @@ resource "google_container_cluster" "gke" {
   monitoring_config {
     enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
   }
+  depends_on = [google_compute_subnetwork.subnet_gke]
 }
 
 resource "google_container_node_pool" "pool" {
