@@ -130,8 +130,8 @@ resource "google_container_cluster" "gke" {
   initial_node_count = 1
 
   ip_allocation_policy {
-    cluster_secondary_range_name = "gke-pods"
-    services_secondary_range_name = "gke-services"
+    cluster_secondary_range_name = "pods"
+    services_secondary_range_name = "services"
     } 
 
   network_policy {
@@ -144,11 +144,11 @@ resource "google_container_cluster" "gke" {
   }
 
   logging_config {
-    enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+    enable_components = ["SYSTEM_COMPONENTS" "WORKLOADS"]
   }
 
   monitoring_config {
-    enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+    enable_components = ["SYSTEM_COMPONENTS" "WORKLOADS"]
   }
 
   depends_on = [google_compute_subnetwork.subnet_gke]
