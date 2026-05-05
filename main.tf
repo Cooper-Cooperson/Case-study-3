@@ -14,12 +14,14 @@ provider "google" {
   region = var.region
   zone = var.zone
   impersonate_service_account = var.service_account
+  version = "~> 5.30.0"
 }
 
 provider "google-beta" {
   project = var.project_id
   region = var.region
   impersonate_service_account = var.service_account
+  version = "~> 5.30.0"
 }
 
 # VPC
