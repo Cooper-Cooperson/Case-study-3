@@ -135,7 +135,7 @@ resource "google_container_cluster" "gke" {
     cluster_secondary_range_name = "pods"
     services_secondary_range_name = "services"
     } 
-  */
+  
   network_policy {
     enabled = true
     provider = "CALICO"
@@ -152,7 +152,7 @@ resource "google_container_cluster" "gke" {
   monitoring_config {
     enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
   }
-
+*/
   depends_on = [google_compute_subnetwork.subnet_gke]
 }
 
