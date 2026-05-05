@@ -30,18 +30,18 @@ resource "google_compute_network" "vpc" {
 
 resource "google_compute_subnetwork" "subnet_gke" {
   name          = "subnet-gke"
-  ip_cidr_range = "10.10.0.0/20"
+  ip_cidr_range = "10.50.0.0/20"
   region        = var.region
   network       = google_compute_network.vpc.self_link
 
   secondary_ip_range {
     range_name    = "gke-pods"
-    ip_cidr_range = "10.11.0.0/20"
+    ip_cidr_range = "10.51.0.0/20"
   }
 
   secondary_ip_range {
     range_name    = "gke-services"
-    ip_cidr_range = "10.12.0.0/24"
+    ip_cidr_range = "10.52.0.0/24"
   }
 }
 
