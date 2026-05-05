@@ -12,7 +12,7 @@ terraform {
 provider "google" {
   project = var.project_id
   region = var.region
-  #zone = var.zone
+  zone = var.zone
   impersonate_service_account = var.service_account
 }
 
@@ -121,7 +121,7 @@ resource "google_compute_firewall" "gke_ssh" {
 
 resource "google_container_cluster" "gke" {
   name = "platform-gke"
-  location = var.region 
+  location = var.zone
   networking_mode = "VPC_NATIVE"
   network = google_compute_network.vpc.self_link
   subnetwork = google_compute_subnetwork.subnet_gke.self_link
@@ -130,7 +130,7 @@ resource "google_container_cluster" "gke" {
   initial_node_count = 1
 
   ip_allocation_policy {
-    cluster_secondary_range_name  = "gke-pods"
+    cluster_secondary_range_name = "gke-pods"
     services_secondary_range_name = "gke-services"
     } 
 
@@ -150,6 +150,7 @@ resource "google_container_cluster" "gke" {
   monitoring_config {
     enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
   }
+
   depends_on = [google_compute_subnetwork.subnet_gke]
 }
 
