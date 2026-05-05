@@ -144,11 +144,11 @@ resource "google_container_cluster" "gke" {
   }
 
   logging_config {
-    enable_components = ["SYSTEM_COMPONENTS" "WORKLOADS"]
+    enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
   }
 
   monitoring_config {
-    enable_components = ["SYSTEM_COMPONENTS" "WORKLOADS"]
+    enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
   }
 
   depends_on = [google_compute_subnetwork.subnet_gke]
