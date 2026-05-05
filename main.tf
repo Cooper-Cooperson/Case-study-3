@@ -14,14 +14,14 @@ provider "google" {
   region = var.region
   zone = var.zone
   impersonate_service_account = var.service_account
-  version = "~> 5.30.0"
+  #version = "~> 5.30.0"
 }
 
 provider "google-beta" {
   project = var.project_id
   region = var.region
   impersonate_service_account = var.service_account
-  version = "~> 5.30.0"
+  #version = "~> 5.30.0"
 }
 
 # VPC
@@ -130,12 +130,12 @@ resource "google_container_cluster" "gke" {
 
   remove_default_node_pool = true
   initial_node_count = 1
-
+  /*
   ip_allocation_policy {
     cluster_secondary_range_name = "pods"
     services_secondary_range_name = "services"
     } 
-
+  */
   network_policy {
     enabled = true
     provider = "CALICO"
