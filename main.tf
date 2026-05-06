@@ -6,6 +6,14 @@ terraform {
       source = "hashicorp/kubernetes"
       version = "~> 2.25"
     }
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.30.0"
+    }
+    google-beta = {
+      source  = "hashicorp/google"
+      version = "~> 5.30.0"
+    }
   }
 }
 
@@ -14,14 +22,14 @@ provider "google" {
   region = var.region
   zone = var.zone
   impersonate_service_account = var.service_account
-  version = "~> 5.30.0"
+  #version = "~> 5.30.0"
 }
 
 provider "google-beta" {
   project = var.project_id
   region = var.region
   impersonate_service_account = var.service_account
-  version = "~> 5.30.0"
+  #version = "~> 5.30.0"
 }
 
 # VPC
@@ -182,8 +190,8 @@ resource "google_container_cluster" "gke" {
   location = var.region
 
   networking_mode = "VPC_NATIVE"
-  network         = google_compute_network.vpc.self_link
-  subnetwork      = google_compute_subnetwork.subnet_gke.self_link
+  network    = google_compute_network.vpc.id
+  subnetwork = google_compute_subnetwork.subnet_gke.id
 
   ip_allocation_policy {
     cluster_secondary_range_name  = "gke-pods"
@@ -191,9 +199,13 @@ resource "google_container_cluster" "gke" {
   }
 
   deletion_protection = false
-
   remove_default_node_pool = true
   initial_node_count       = 1
+
+  node_locations = [
+    "${var.region}-a",
+    "${var.region}-b"
+  ]
 
   release_channel {
     channel = "REGULAR"
