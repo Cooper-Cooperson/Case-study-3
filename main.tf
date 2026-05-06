@@ -185,7 +185,8 @@ resource "google_container_cluster" "gke" {
   name     = "platform-gke"
   location = var.region
 
-  networking_mode = "VPC_NATIVE"
+  node_locations = ["${var.region}-a"]
+
   network    = google_compute_network.vpc.id
   subnetwork = google_compute_subnetwork.subnet_gke.id
 
@@ -194,44 +195,14 @@ resource "google_container_cluster" "gke" {
     services_secondary_range_name = "gke-services"
   }
 
-  deletion_protection = false
   remove_default_node_pool = true
   initial_node_count       = 1
 
-  node_locations = [
-    "${var.region}-a",
-    "${var.region}-b"
-  ]
-
-  release_channel {
-    channel = "REGULAR"
-  }
-
-  logging_config {
-    enable_components = [
-      "SYSTEM_COMPONENTS",
-      "WORKLOADS",
-    ]
-  }
-
-  monitoring_config {
-    enable_components = [
-      "SYSTEM_COMPONENTS",
-      "WORKLOADS",
-    ]
-  }
-
-  network_policy {
-    enabled  = true
-    provider = "CALICO"
-  }
-
-  workload_identity_config {
-    workload_pool = "${var.project_id}.svc.id.goog"
-  }
+  deletion_protection = false
 
   depends_on = [
-    google_compute_subnetwork.subnet_gke
+    google_compute_subnetwork.subnet_gke,
+    google_service_networking_connection.private_vpc_connection
   ]
 }
 
