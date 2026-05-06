@@ -185,7 +185,7 @@ resource "google_container_cluster" "gke" {
   name     = "platform-gke"
   location = var.region
 
-  node_locations = ["${var.region}-a"]
+  node_locations = ["${var.zone}"]
 
   network    = google_compute_network.vpc.id
   subnetwork = google_compute_subnetwork.subnet_gke.id
