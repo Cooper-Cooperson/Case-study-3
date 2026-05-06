@@ -121,13 +121,20 @@ resource "google_compute_firewall" "gke_ssh" {
 
 # GKE cluster
 
+resource "kubernetes_service_account" "orchestrator" {
+  metadata {
+    name = "orchestrator-sa"
+    namespace = kubernetes_namespace.platform.metadata[0].name
+  }
+}
+
 resource "google_container_cluster" "gke" {
   name = "platform-gke"
   location = var.region 
   networking_mode = "VPC_NATIVE"
   network = google_compute_network.vpc.self_link
   subnetwork = google_compute_subnetwork.subnet_gke.self_link
-
+  deletion_protection = false
   remove_default_node_pool = true
   initial_node_count = 1
   /*
@@ -309,9 +316,9 @@ resource "google_project_iam_binding" "orchestrator_sql" {
 
 resource "kubernetes_deployment" "orchestrator" {
   metadata {
-    name = "provisioning-orchestrator"
+    name      = "provisioning-orchestrator"
     namespace = kubernetes_namespace.platform.metadata[0].name
-    labels = { app = "orchestrator" }
+    labels    = { app = "orchestrator" }
   }
 
   spec {
@@ -322,25 +329,31 @@ resource "kubernetes_deployment" "orchestrator" {
     }
 
     template {
-  metadata { labels = { app = "orchestrator" } }
+      metadata { labels = { app = "orchestrator" } }
 
-  spec {
-    service_account_name = "orchestrator-sa"
+      spec {
+        service_account_name = kubernetes_service_account.orchestrator.metadata[0].name
 
-    container {
-      name = "orchestrator"
-      image = "europe-west4-docker.pkg.dev/${var.project_id}/platform/orchestrator:latest"
+        container {
+          name  = "orchestrator"
+          image = "europe-west4-docker.pkg.dev/${var.project_id}/platform/orchestrator:latest"
 
-      env {
-        name = "PROJECT_ID"
-        value = var.project_id
+          env {
+            name  = "PROJECT_ID"
+            value = var.project_id
+          }
+
+          port { container_port = 8080 }
+        }
       }
-
-      port { container_port = 8080 }
     }
   }
-  }
-  }
+
+  depends_on = [
+    kubernetes_namespace.platform,
+    kubernetes_service_account.orchestrator,
+    google_container_node_pool.pool,
+  ]
 }
 
 /*
