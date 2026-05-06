@@ -14,14 +14,14 @@ provider "google" {
   region = var.region
   zone = var.zone
   impersonate_service_account = var.service_account
-  #version = "~> 5.30.0"
+  version = "~> 5.30.0"
 }
 
 provider "google-beta" {
   project = var.project_id
   region = var.region
   impersonate_service_account = var.service_account
-  #version = "~> 5.30.0"
+  version = "~> 5.30.0"
 }
 
 # VPC
@@ -128,6 +128,7 @@ resource "kubernetes_service_account" "orchestrator" {
   }
 }
 
+/*
 resource "google_container_cluster" "gke" {
   name     = "platform-gke"
   location = var.region
@@ -171,18 +172,69 @@ resource "google_container_cluster" "gke" {
   monitoring_config {
     enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
   }
-*/
+
   depends_on = [google_compute_subnetwork.subnet_gke]
+}
+*/
+
+resource "google_container_cluster" "gke" {
+  name     = "platform-gke"
+  location = var.region
+
+  networking_mode = "VPC_NATIVE"
+  network         = google_compute_network.vpc.self_link
+  subnetwork      = google_compute_subnetwork.subnet_gke.self_link
+
+  ip_allocation_policy {
+    cluster_secondary_range_name  = "gke-pods"
+    services_secondary_range_name = "gke-services"
+  }
+
+  deletion_protection = false
+
+  remove_default_node_pool = true
+  initial_node_count       = 1
+
+  release_channel {
+    channel = "REGULAR"
+  }
+
+  logging_config {
+    enable_components = [
+      "SYSTEM_COMPONENTS",
+      "WORKLOADS",
+    ]
+  }
+
+  monitoring_config {
+    enable_components = [
+      "SYSTEM_COMPONENTS",
+      "WORKLOADS",
+    ]
+  }
+
+  network_policy {
+    enabled  = true
+    provider = "CALICO"
+  }
+
+  workload_identity_config {
+    workload_pool = "${var.project_id}.svc.id.goog"
+  }
+
+  depends_on = [
+    google_compute_subnetwork.subnet_gke,
+  ]
 }
 
 resource "google_container_node_pool" "pool" {
   name = "platform-pool"
   location = var.region
   cluster= google_container_cluster.gke.name
-  node_count = 2
+  node_count = 1
 
   node_config {
-    machine_type = "e2-standard-4"
+    machine_type = "e2-medium"
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
     tags = ["gke-node"]
   }
