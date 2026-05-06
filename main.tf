@@ -8,7 +8,7 @@ terraform {
     }
     google = {
       source  = "hashicorp/google"
-      version = "~> 5.30.0"
+      version = "~> 5.35.3"
     }
   }
 }
@@ -132,6 +132,15 @@ resource "kubernetes_service_account" "orchestrator" {
   }
 }
 
+resource "google_project_iam_binding" "gke_artifact_registry" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+
+  members = [
+    "serviceAccount:${google_container_node_pool.pool.node_config[0].service_account}"
+  ]
+}
+
 /*
 resource "google_container_cluster" "gke" {
   name     = "platform-gke"
@@ -204,6 +213,13 @@ resource "google_container_cluster" "gke" {
     google_compute_subnetwork.subnet_gke,
     google_service_networking_connection.private_vpc_connection
   ]
+
+  master_authorized_networks_config {
+  cidr_blocks {
+    cidr_block   = "0.0.0.0/0"
+    display_name = "allow-all"
+  }
+}
 }
 
 resource "google_container_node_pool" "pool" {
@@ -217,6 +233,11 @@ resource "google_container_node_pool" "pool" {
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
     tags = ["gke-node"]
   }
+  
+}
+resource "time_sleep" "wait_for_gke" {
+  depends_on = [google_container_node_pool.pool]
+  create_duration = "60s"
 }
 /*
 # IAM
