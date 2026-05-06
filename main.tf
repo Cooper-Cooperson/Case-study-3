@@ -10,10 +10,6 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 5.30.0"
     }
-    google-beta = {
-      source  = "hashicorp/google"
-      version = "~> 5.30.0"
-    }
   }
 }
 
@@ -24,14 +20,14 @@ provider "google" {
   impersonate_service_account = var.service_account
   #version = "~> 5.30.0"
 }
-
+/*
 provider "google-beta" {
   project = var.project_id
   region = var.region
   impersonate_service_account = var.service_account
   #version = "~> 5.30.0"
 }
-
+*/
 # VPC
 resource "google_compute_network" "vpc" {
   name = "hub-vpc"
@@ -235,7 +231,7 @@ resource "google_container_cluster" "gke" {
   }
 
   depends_on = [
-    google_compute_subnetwork.subnet_gke,
+    google_compute_subnetwork.subnet_gke
   ]
 }
 
