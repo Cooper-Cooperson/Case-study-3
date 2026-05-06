@@ -41,6 +41,9 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+        
+      - name: Temp
+        run: terraform state rm kubernetes_namespace.platform, terraform state rm kubernetes_deployment.portal, terraform state rm kubernetes_deployment.orchestrator, terraform state rm kubernetes_service_account.orchestrator 
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve 
