@@ -129,14 +129,26 @@ resource "kubernetes_service_account" "orchestrator" {
 }
 
 resource "google_container_cluster" "gke" {
-  name = "platform-gke"
-  location = var.region 
+  name     = "platform-gke"
+  location = var.region
+
   networking_mode = "VPC_NATIVE"
-  network = google_compute_network.vpc.self_link
-  subnetwork = google_compute_subnetwork.subnet_gke.self_link
-  deletion_protection = false
+  network         = google_compute_network.vpc.self_link
+  subnetwork      = google_compute_subnetwork.subnet_gke.self_link
+
   remove_default_node_pool = true
-  initial_node_count = 1
+  initial_node_count       = 1
+  deletion_protection      = false
+
+  ip_allocation_policy {
+    cluster_secondary_range_name  = "gke-pods"
+    services_secondary_range_name = "gke-services"
+  }
+
+  workload_identity_config {
+    workload_pool = "${var.project_id}.svc.id.goog"
+  }
+  
   /*
   ip_allocation_policy {
     cluster_secondary_range_name = "pods"
@@ -167,7 +179,7 @@ resource "google_container_node_pool" "pool" {
   name = "platform-pool"
   location = var.region
   cluster= google_container_cluster.gke.name
-  node_count = 3
+  node_count = 2
 
   node_config {
     machine_type = "e2-standard-4"
