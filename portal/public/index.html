@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HR New Hire Portal</title>
+</head>
+<body>
+  <h1>New Hire Form</h1>
+
+  <form id="hireForm">
+    <input placeholder="Employee ID" name="id" required><br>
+    <input placeholder="Full Name" name="name" required><br>
+    <input placeholder="Email" name="email" required><br>
+    <input placeholder="Department" name="department" required><br>
+    <input placeholder="Role" name="role" required><br>
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    document.getElementById("hireForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const form = new FormData(e.target);
+      const data = Object.fromEntries(form.entries());
+
+      await fetch("/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      alert("New hire submitted!");
+    });
+  </script>
+</body>
+</html>
