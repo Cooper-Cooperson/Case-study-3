@@ -155,63 +155,15 @@ resource "google_project_iam_binding" "gke_artifact_registry" {
   ]
 }
 
-/*
+
 resource "google_container_cluster" "gke" {
   name     = "platform-gke"
-  location = var.region
+  location = var.zone   # ZONAL CLUSTER
 
   networking_mode = "VPC_NATIVE"
-  network         = google_compute_network.vpc.self_link
-  subnetwork      = google_compute_subnetwork.subnet_gke.self_link
 
-  remove_default_node_pool = true
-  initial_node_count       = 1
-  deletion_protection      = false
-
-  ip_allocation_policy {
-    cluster_secondary_range_name  = "gke-pods"
-    services_secondary_range_name = "gke-services"
-  }
-
-  workload_identity_config {
-    workload_pool = "${var.project_id}.svc.id.goog"
-  }
-  
-  /*
-  ip_allocation_policy {
-    cluster_secondary_range_name = "pods"
-    services_secondary_range_name = "services"
-    } 
-  
-  network_policy {
-    enabled = true
-    provider = "CALICO"
-  }
-
-  workload_identity_config {
-    workload_pool = "${var.project_id}.svc.id.goog"
-  }
-
-  logging_config {
-    enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
-  }
-
-  monitoring_config {
-    enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
-  }
-
-  depends_on = [google_compute_subnetwork.subnet_gke]
-}
-*/
-
-resource "google_container_cluster" "gke" {
-  name     = "platform-gke"
-  location = var.region
-
-  node_locations = ["${var.zone}"]
-
-  network    = google_compute_network.vpc.id
-  subnetwork = google_compute_subnetwork.subnet_gke.id
+  network    = google_compute_network.vpc.self_link
+  subnetwork = google_compute_subnetwork.subnet_gke.self_link
 
   ip_allocation_policy {
     cluster_secondary_range_name  = "gke-pods"
@@ -220,20 +172,24 @@ resource "google_container_cluster" "gke" {
 
   remove_default_node_pool = true
   initial_node_count       = 1
+
+  release_channel {
+    channel = "REGULAR"
+  }
 
   deletion_protection = false
+
+  master_authorized_networks_config {
+    cidr_blocks {
+      cidr_block   = "0.0.0.0/0"
+      display_name = "allow-all"
+    }
+  }
 
   depends_on = [
     google_compute_subnetwork.subnet_gke,
     google_service_networking_connection.private_vpc_connection
   ]
-
-  master_authorized_networks_config {
-  cidr_blocks {
-    cidr_block   = "0.0.0.0/0"
-    display_name = "allow-all"
-  }
-}
 }
 
 resource "google_container_node_pool" "pool" {
@@ -431,7 +387,6 @@ resource "kubernetes_deployment" "orchestrator" {
   depends_on = [
     kubernetes_namespace.platform,
     kubernetes_service_account.orchestrator,
-    google_container_node_pool.pool,
   ]
 }
 
