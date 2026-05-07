@@ -132,6 +132,20 @@ resource "kubernetes_service_account" "orchestrator" {
   }
 }
 
+resource "google_service_account" "gke_nodes" {
+  account_id   = "gke-nodes"
+  display_name = "GKE Node Pool Service Account"
+}
+
+resource "google_project_iam_binding" "gke_nodes_artifact_registry" {
+  project = var.project_id
+  role = "roles/artifactregistry.reader"
+
+  members = [
+    "serviceAccount:${google_service_account.gke_nodes.email}"
+  ]
+}
+
 resource "google_project_iam_binding" "gke_artifact_registry" {
   project = var.project_id
   role    = "roles/artifactregistry.reader"
@@ -230,6 +244,7 @@ resource "google_container_node_pool" "pool" {
 
   node_config {
     machine_type = "e2-medium"
+    service_account = google_service_account.gke_nodes.email
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
     tags = ["gke-node"]
   }
