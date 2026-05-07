@@ -158,12 +158,12 @@ resource "google_project_iam_binding" "gke_artifact_registry" {
 
 resource "google_container_cluster" "gke" {
   name     = "platform-gke"
-  location = var.region
+  location = var.zone   # ZONAL CLUSTER
 
-  node_locations = ["${var.zone}"]
+  networking_mode = "VPC_NATIVE"
 
-  network    = google_compute_network.vpc.id
-  subnetwork = google_compute_subnetwork.subnet_gke.id
+  network    = google_compute_network.vpc.self_link
+  subnetwork = google_compute_subnetwork.subnet_gke.self_link
 
   ip_allocation_policy {
     cluster_secondary_range_name  = "gke-pods"
@@ -173,19 +173,23 @@ resource "google_container_cluster" "gke" {
   remove_default_node_pool = true
   initial_node_count       = 1
 
+  release_channel {
+    channel = "REGULAR"
+  }
+
   deletion_protection = false
+
+  master_authorized_networks_config {
+    cidr_blocks {
+      cidr_block   = "0.0.0.0/0"
+      display_name = "allow-all"
+    }
+  }
 
   depends_on = [
     google_compute_subnetwork.subnet_gke,
     google_service_networking_connection.private_vpc_connection
   ]
-
-  master_authorized_networks_config {
-  cidr_blocks {
-    cidr_block   = "0.0.0.0/0"
-    display_name = "allow-all"
-  }
-}
 }
 
 resource "google_container_node_pool" "pool" {
