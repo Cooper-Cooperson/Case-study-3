@@ -133,7 +133,7 @@ resource "kubernetes_service_account" "orchestrator" {
 }
 
 resource "google_service_account" "gke_nodes" {
-  account_id   = "gke-nodes"
+  account_id = "gke-nodes"
   display_name = "GKE Node Pool Service Account"
 }
 
@@ -323,7 +323,7 @@ resource "kubernetes_deployment" "portal" {
       spec {
         container {
           name = "portal"
-          image = "europe-west4-docker.pkg.dev/${var.project_id}/platform/portal:latest"
+          image = "europe-west1-docker.pkg.dev/${var.project_id}/platform/portal:latest"
           port { container_port = 8080 }
         }
       }
@@ -367,7 +367,7 @@ resource "kubernetes_deployment" "orchestrator" {
 
         container {
           name  = "orchestrator"
-          image = "europe-west4-docker.pkg.dev/${var.project_id}/platform/orchestrator:latest"
+          image = "europe-west1-docker.pkg.dev/${var.project_id}/platform/orchestrator:latest"
 
           env {
             name  = "PROJECT_ID"
