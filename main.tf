@@ -206,10 +206,12 @@ resource "google_container_node_pool" "pool" {
   }
   
 }
+/*
 resource "time_sleep" "wait_for_gke" {
   depends_on = [google_container_node_pool.pool]
   create_duration = "60s"
 }
+*/
 /*
 # IAM
 resource "google_project_iam_binding" "devs_viewer" {
@@ -332,6 +334,26 @@ resource "kubernetes_deployment" "portal" {
         }
       }
     }
+  }
+}
+
+resource "kubernetes_service" "portal_lb" {
+  metadata {
+    name      = "portal-service"
+    namespace = kubernetes_namespace.platform.metadata[0].name
+  }
+
+  spec {
+    selector = {
+      app = "portal"
+    }
+
+    port {
+      port        = 80
+      target_port = 8080
+    }
+
+    type = "LoadBalancer"
   }
 }
 
