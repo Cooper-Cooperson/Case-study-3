@@ -206,12 +206,12 @@ resource "google_container_node_pool" "pool" {
   }
   
 }
-/*
+
 resource "time_sleep" "wait_for_gke" {
   depends_on = [google_container_node_pool.pool]
   create_duration = "60s"
 }
-*/
+
 /*
 # IAM
 resource "google_project_iam_binding" "devs_viewer" {

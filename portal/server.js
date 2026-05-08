@@ -10,10 +10,9 @@ app.use(express.static("public"));
 
 app.post("/submit", async (req, res) => {
   try {
-    const { id, name, email, department, role } = req.body;
+    const { name, email, department, role } = req.body;
 
     await publishNewHire({
-      id,
       name,
       email,
       department,
