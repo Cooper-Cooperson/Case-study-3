@@ -194,7 +194,7 @@ resource "google_container_cluster" "gke" {
 
 resource "google_container_node_pool" "pool" {
   name = "platform-pool"
-  location = var.region
+  location = var.zone
   cluster= google_container_cluster.gke.name
   node_count = 1
 
@@ -288,7 +288,7 @@ data "google_client_config" "default" {}
 
 data "google_container_cluster" "cluster" {
   name = google_container_cluster.gke.name
-  location = var.region
+  location = var.zone
 }
 
 provider "kubernetes" {
