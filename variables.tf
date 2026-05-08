@@ -21,3 +21,15 @@ variable school_ip  {
 variable email  {
   type = string
 }
+
+variable app-db  {
+  type = string
+}
+
+variable db_user  {
+  type = string
+}
+
+variable db_password  {
+  type = string
+}

@@ -339,9 +339,11 @@ resource "kubernetes_deployment" "portal" {
 
 resource "kubernetes_service" "portal_lb" {
   metadata {
-    name      = "portal-service"
+    name = "portal-service"
     namespace = kubernetes_namespace.platform.metadata[0].name
   }
+
+  annotations = {"cloud.google.com/network-tier" = "Standard"}
 
   spec {
     selector = {
@@ -349,7 +351,7 @@ resource "kubernetes_service" "portal_lb" {
     }
 
     port {
-      port        = 80
+      port = 80
       target_port = 8080
     }
 
@@ -398,6 +400,26 @@ resource "kubernetes_deployment" "orchestrator" {
           env {
             name  = "PROJECT_ID"
             value = var.project_id
+          }
+
+          env {
+            name  = "DB_NAME"
+            value = var.db_name
+          }
+
+          env {
+            name  = "DB_USER"
+            value = var.db_user
+          }
+
+          env {   
+            name  = "DB_PASSWORD"
+            value = var.db_password
+          }
+
+          env {
+            name  = "DB_HOST"
+            value = "app-db.${var.region}.cloudsql.private"
           }
 
           port { container_port = 8080 }

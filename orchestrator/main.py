@@ -1,30 +1,33 @@
 import logging
 import os
-from google.cloud import pubsub_v1
-from src.handler import handle_new_hire
+from google.cloud import pubsub_v1, logging as cloud_logging
+from src import config, handler, db
 
+# Cloud Logging setup
+cloud_logging.Client().setup_logging()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-PROJECT_ID = os.environ.get("PROJECT_ID")
-SUBSCRIPTION_ID = os.environ.get("SUBSCRIPTION_ID", "new-hire-orchestrator-sub")
-
 def callback(message: pubsub_v1.subscriber.message.Message):
+    logger.info("Received message: %s", message.message_id)
     try:
-        handle_new_hire(message.data)
+        handler.handle_new_hire(message.data)
         message.ack()
-    except Exception as e:
-        logger.exception("Error processing message, NACKing")
+        logger.info("Message %s processed and ACKed", message.message_id)
+    except Exception:
+        logger.exception("Error processing message %s, NACKing", message.message_id)
         message.nack()
 
 def main():
-    if not PROJECT_ID:
-        raise RuntimeError("PROJECT_ID env var is required")
+    db.init_schema()
 
     subscriber = pubsub_v1.SubscriberClient()
-    subscription_path = subscriber.subscription_path(PROJECT_ID, SUBSCRIPTION_ID)
+    subscription_path = subscriber.subscription_path(
+        config.PROJECT_ID,
+        config.SUBSCRIPTION_ID,
+    )
 
-    logger.info(f"[ORCH] Listening on {subscription_path}")
+    logger.info("Listening on %s", subscription_path)
     streaming_pull_future = subscriber.subscribe(subscription_path, callback=callback)
 
     try:
