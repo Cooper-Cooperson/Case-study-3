@@ -22,7 +22,7 @@ variable email  {
   type = string
 }
 
-variable app-db  {
+variable db_name  {
   type = string
 }
 

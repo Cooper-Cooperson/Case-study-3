@@ -343,7 +343,7 @@ resource "kubernetes_service" "portal_lb" {
     namespace = kubernetes_namespace.platform.metadata[0].name
   }
 
-  annotations = {"cloud.google.com/network-tier" = "Standard"}
+  #annotations = {"cloud.google.com/network-tier" = "Standard"}
 
   spec {
     selector = {
