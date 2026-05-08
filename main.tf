@@ -200,9 +200,21 @@ resource "google_container_node_pool" "pool" {
 
   node_config {
     machine_type = "e2-medium"
+    disk_size_gb    = 50
+    disk_type       = "pd-standard"
     service_account = google_service_account.gke_nodes.email
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
     tags = ["gke-node"]
+
+     management {
+    auto_repair  = true
+    auto_upgrade = true
+  }
+
+  upgrade_settings {
+    max_surge       = 1
+    max_unavailable = 0
+  }
   }
   
 }
