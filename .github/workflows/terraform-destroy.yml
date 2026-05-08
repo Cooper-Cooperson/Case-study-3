@@ -28,6 +28,9 @@ jobs:
          service_account = "${{ secrets.SERVICE_ACCOUNT }}"
          school_ip = "${{ secrets.SCHOOL_IP }}"
          email = "${{ secrets.EMAIL }}"
+         db_name = "${{ secrets.DB_NAME }}"
+         db_user = "${{ secrets.DB_USER }}"
+         db_password = "${{ secrets.DB_PASSWORD }}"
          EOF
 
       - name: Authenticate to Google Cloud
