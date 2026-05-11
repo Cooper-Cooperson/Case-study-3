@@ -125,6 +125,15 @@ resource "google_compute_firewall" "gke_ssh" {
 
 # GKE cluster
 
+resource "google_pubsub_topic" "new_hire" {
+  name = "new-hire-events"
+}
+
+resource "google_pubsub_subscription" "orchestrator_sub" {
+  name = "new-hire-orchestrator-sub"
+  topic = google_pubsub_topic.new_hire.name
+}
+
 resource "kubernetes_service_account" "orchestrator" {
   metadata {
     name = "orchestrator-sa"
@@ -397,6 +406,11 @@ resource "kubernetes_deployment" "orchestrator" {
           name  = "orchestrator"
           image = "europe-west1-docker.pkg.dev/${var.project_id}/platform/orchestrator:latest"
 
+          env {
+            name  = "SUBSCRIPTION_ID"
+            value = "new-hire-orchestrator-sub"
+          }
+          
           env {
             name  = "PROJECT_ID"
             value = var.project_id
