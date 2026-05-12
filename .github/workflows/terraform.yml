@@ -30,6 +30,7 @@ jobs:
          db_name = "${{ secrets.DB_NAME }}"
          db_user = "${{ secrets.DB_USER }}"
          db_password = "${{ secrets.DB_PASSWORD }}"
+         project_number = "${{ secrets.PROJECT_NUMBER }}"
          EOF
 
       - name: Authenticate to Google Cloud
