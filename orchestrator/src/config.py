@@ -10,11 +10,7 @@ DB_HOST = os.environ["DB_HOST"]
 DB_PORT = int(os.environ.get("DB_PORT", "5432"))
 DB_NAME = os.environ["DB_NAME"]       
 DB_USER = os.environ["DB_USER"]
-DB_PASSWORD = os.environ["DB_PASSWORD"]
-
-# Cloud Identity / Admin SDK
-ADMIN_DELEGATED_USER = os.environ["ADMIN_DELEGATED_USER"] 
-CUSTOMER_ID = os.environ["CUSTOMER_ID"]                    
+DB_PASSWORD = os.environ["DB_PASSWORD"]                   
 
 # IAM / Groups
 PROJECT_NUMBER = os.environ["PROJECT_NUMBER"]              

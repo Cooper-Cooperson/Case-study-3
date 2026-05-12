@@ -1,5 +1,4 @@
 import logging
-import os
 from google.cloud import pubsub_v1, logging as cloud_logging
 from src import config, handler, db
 

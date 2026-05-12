@@ -1,6 +1,8 @@
 import json
 import logging
-from . import db, identity, iam
+from . import db
+from .identity import simulate_cloud_identity_user, simulate_add_to_groups
+from .iam import simulate_assign_iam_roles
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +11,6 @@ def handle_new_hire(message_data: bytes):
     logger.info("[ORCH] Received new hire event: %s", payload)
 
     user = {
-        "id": payload.get("id"),
         "name": payload.get("name"),
         "email": payload.get("email"),
         "department": payload.get("department"),
@@ -17,31 +18,32 @@ def handle_new_hire(message_data: bytes):
         "status": "PENDING",
     }
 
+    # Persist in DB
     try:
-        db.insert_user(user)
+        user_id = db.insert_user(user)
+        logger.info("[ORCH] User stored in DB with id=%s", user_id)
     except Exception:
         logger.exception("Failed to insert user into DB")
         raise
 
-    #Create Cloud Identity user
+    # Simulate Cloud Identity user creation
     try:
-        primary_email = identity.create_cloud_identity_user(user)
+        primary_email = simulate_cloud_identity_user(user)
     except Exception:
-        logger.exception("Failed to create Cloud Identity user")
+        logger.exception("Simulated Cloud Identity creation failed")
         raise
 
-    #Assign IAM roles
+    # Simulate IAM roles
     try:
-        iam.assign_iam_roles(primary_email)
+        simulate_assign_iam_roles(primary_email)
     except Exception:
-        logger.exception("Failed to assign IAM roles")
+        logger.exception("Simulated IAM role assignment failed")
         raise
 
-    #Add to groups
+    # Simulate group membership
     try:
-        identity.add_user_to_groups(primary_email)
+        simulate_add_to_groups(primary_email)
     except Exception:
-        logger.exception("Failed to add user to groups")
-        # non-fatal: we log but don't fail the whole flow
+        logger.exception("Simulated group assignment failed")
 
-    logger.info("[ORCH] Finished provisioning new hire: %s", primary_email)
+    logger.info("[ORCH] Finished simulated provisioning for: %s", primary_email)

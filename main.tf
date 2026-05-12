@@ -18,16 +18,8 @@ provider "google" {
   region = var.region
   zone = var.zone
   impersonate_service_account = var.service_account
-  #version = "~> 5.30.0"
 }
-/*
-provider "google-beta" {
-  project = var.project_id
-  region = var.region
-  impersonate_service_account = var.service_account
-  #version = "~> 5.30.0"
-}
-*/
+
 # VPC
 resource "google_compute_network" "vpc" {
   name = "hub-vpc"
@@ -89,7 +81,7 @@ resource "google_compute_firewall" "allow_gke_to_sql" {
   }
 
   source_ranges = ["10.50.0.0/20"]   # GKE subnet var
-  target_tags = ["cloud-sql"]      # SQL instance tag
+  target_tags = ["cloud-sql"]
 }
 
 resource "google_compute_firewall" "deny_all_to_sql" {
@@ -208,7 +200,7 @@ resource "google_container_node_pool" "pool" {
   node_count = 1
 
   node_config {
-    machine_type = "e2-medium"
+    machine_type = "e2-medium" # voor lagere kosten
     service_account = google_service_account.gke_nodes.email
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
     tags = ["gke-node"]
@@ -414,6 +406,11 @@ resource "kubernetes_deployment" "orchestrator" {
           env {
             name  = "PROJECT_ID"
             value = var.project_id
+          }
+
+          env {
+            name  = "PROJECT_NUMBER"
+            value = var.project_number
           }
 
           env {

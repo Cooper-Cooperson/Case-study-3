@@ -14,22 +14,30 @@ variable service_account {
   type = string
 }
 
-variable school_ip  {
+variable school_ip {
   type = string
 }
 
-variable email  {
+variable email {
   type = string
 }
 
-variable db_name  {
+variable db_name {
   type = string
 }
 
-variable db_user  {
+variable db_user {
   type = string
 }
 
-variable db_password  {
+variable db_password {
+  type = string
+}
+
+variable project_number {
+  type = string
+}
+
+variable customer_id {
   type = string
 }

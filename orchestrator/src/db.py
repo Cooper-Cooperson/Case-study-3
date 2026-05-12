@@ -56,7 +56,7 @@ def insert_user(user: dict):
                     user.get("role"),
                     user.get("status", "NEW"),
                 ),
-            )
+            )  
         new_id = cur.fetchone()["id"]
         logger.info("User inserted with ID %s", new_id)
         logger.info("User persisted in DB: %s", user["email"])
