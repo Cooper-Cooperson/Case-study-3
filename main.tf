@@ -419,18 +419,18 @@ resource "kubernetes_deployment" "orchestrator" {
           }
 
           env {
-            name  = "DB_USER"
+            name = "DB_USER"
             value = var.db_user
           }
 
           env {   
-            name  = "DB_PASSWORD"
+            name = "DB_PASSWORD"
             value = var.db_password
           }
 
           env {
-            name  = "DB_HOST"
-            value = "app-db.${var.region}.cloudsql.private"
+            name = "DB_HOST"
+            value = "${google_sql_database_instance.db.connection_name}.postgres.database.cloudsql.internal"
           }
 
           port { container_port = 8080 }
