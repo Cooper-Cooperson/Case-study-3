@@ -37,7 +37,3 @@ variable db_password {
 variable project_number {
   type = string
 }
-
-variable customer_id {
-  type = string
-}
