@@ -27,6 +27,19 @@ app.post("/submit", async (req, res) => {
   }
 });
 
+app.get("/users", async (req, res) => {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("SELECT id, name, email, department, role, status, created_at FROM users ORDER BY created_at DESC");
+    client.release();
+
+    res.render("users", { users: result.rows });
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).send("Error fetching users");
+  }
+});
+
 app.listen(8080, () => {
   console.log("HR Portal running on port 8080");
 });

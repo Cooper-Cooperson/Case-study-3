@@ -395,7 +395,7 @@ resource "kubernetes_deployment" "orchestrator" {
         service_account_name = kubernetes_service_account.orchestrator.metadata[0].name
 
         container {
-          name  = "orchestrator"
+          name = "orchestrator"
           image = "europe-west1-docker.pkg.dev/${var.project_id}/platform/orchestrator:latest"
 
           env {
