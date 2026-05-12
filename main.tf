@@ -430,11 +430,31 @@ resource "kubernetes_deployment" "orchestrator" {
 
           env {
             name = "DB_HOST"
-            value = "${google_sql_database_instance.db.connection_name}.postgres.database.cloudsql.internal"
+            value = "127.0.0.1"
+          }
+
+          env {
+            name = "DB_PORT"
+            value = "5432"
           }
 
           port { container_port = 8080 }
         }
+
+        container {
+          name  = "cloud-sql-proxy"
+          image = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.0"
+
+        args = [
+          "${google_sql_database_instance.db.connection_name}",
+          "--port=5432",
+          "--private-ip"
+        ]
+
+        security_context {
+          run_as_non_root = true
+        }
+}
       }
     }
   }
