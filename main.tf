@@ -83,7 +83,7 @@ resource "google_compute_firewall" "allow_gke_to_sql" {
   source_ranges = ["10.50.0.0/20"]   # GKE subnet var
   target_tags = ["cloud-sql"]
 }
-
+/*
 resource "google_compute_firewall" "deny_all_to_sql" {
   name = "deny-all-to-sql"
   network = google_compute_network.vpc.name
@@ -98,7 +98,7 @@ resource "google_compute_firewall" "deny_all_to_sql" {
   source_ranges = ["0.0.0.0/32"]
   target_tags = ["cloud-sql"]
 }
-
+*/
 resource "google_compute_firewall" "gke_ssh" {
   name = "gke-ssh"
   network = google_compute_network.vpc.name
@@ -252,7 +252,7 @@ resource "google_logging_project_sink" "logs_to_bq" {
 resource "google_sql_database_instance" "db" {
   name = "app-db"
   database_version = "POSTGRES_15"
-  region = var.region
+  region = var.zone
   deletion_protection = false
   depends_on = [
     google_service_networking_connection.private_vpc_connection
@@ -262,14 +262,14 @@ resource "google_sql_database_instance" "db" {
     tier = "db-custom-2-7680"
 
     ip_configuration {
-      ipv4_enabled = false
+      ipv4_enabled = true
       private_network = google_compute_network.vpc.self_link
     }
   }
 }
 
 resource "google_sql_database" "db_default" {
-  name = "appdb"
+  name = "app-db"
   instance = google_sql_database_instance.db.name
 }
 
