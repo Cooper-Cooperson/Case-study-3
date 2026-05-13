@@ -25,7 +25,7 @@ provider "kubernetes" {
   token = data.google_client_config.default.access_token
   cluster_ca_certificate = base64decode(data.google_container_cluster.cluster.master_auth[0].cluster_ca_certificate)
 
-  load_config_file       = false
+  load_config_file = false
 }
 
 # VPC
@@ -367,7 +367,7 @@ data "google_container_cluster" "cluster" {
   name = google_container_cluster.gke.name
   location = var.zone
 }
-
+/*
 provider "kubernetes" {
   host  = "https://${data.google_container_cluster.cluster.endpoint}"
   token = data.google_client_config.default.access_token
@@ -376,7 +376,7 @@ provider "kubernetes" {
     data.google_container_cluster.cluster.master_auth[0].cluster_ca_certificate
   )
 }
-
+*/
 # Self service portal
 resource "kubernetes_namespace" "platform" {
   metadata {
