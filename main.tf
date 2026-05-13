@@ -356,6 +356,16 @@ resource "google_project_iam_binding" "orchestrator_sql_client" {
     "serviceAccount:${google_service_account.orchestrator_sa.email}",
   ]
 }
+
+resource "google_project_iam_binding" "orchestrator_pubsub_subscriber" {
+  project = var.project_id
+  role = "roles/pubsub.subscriber"
+
+  members = [
+    "serviceAccount:${google_service_account.orchestrator_sa.email}"
+  ]
+}
+
 # Self service portal
 resource "kubernetes_namespace" "platform" {
   metadata {
