@@ -84,21 +84,6 @@ resource "google_compute_firewall" "allow_gke_to_sql" {
   target_tags = ["cloud-sql"]
 }
 
-resource "google_compute_firewall" "allow_any" {
-  name = "allow-any"
-  network = google_compute_network.vpc.name
-
-  direction = "INGRESS"
-  priority = 1000
-
-  allow {
-    protocol = "tcp"
-    ports = ["all"]
-  }
-
-  source_ranges = ["0.0.0.0/0"]   # GKE subnet var 10.50.0.0/20
-  target_tags = ["cloud-sql"]
-}
 /*
 resource "google_compute_firewall" "deny_all_to_sql" {
   name = "deny-all-to-sql"
