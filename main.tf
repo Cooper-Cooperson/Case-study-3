@@ -346,6 +346,15 @@ resource "google_service_account" "orchestrator_sa" {
   ]
 }
 
+resource "google_project_iam_binding" "portal_pubsub_publisher" {
+  project = var.project_id
+  role = "roles/pubsub.publisher"
+
+  members = [
+    "serviceAccount:${google_service_account.gke_nodes.email}"
+  ]
+}
+
 resource "google_project_iam_binding" "orchestrator_sql_client" {
   project = var.project_id
   role = "roles/cloudsql.client"
@@ -399,27 +408,27 @@ resource "kubernetes_deployment" "portal" {
           port { container_port = 8080 }
 
           env {
-            name  = "DB_HOST"
+            name = "DB_HOST"
             value = "app-db.db.internal"
           }
 
           env {
-            name  = "DB_PORT"
+            name = "DB_PORT"
             value = "5432"
           }
 
           env {
-            name  = "DB_NAME"
+            name = "DB_NAME"
             value = var.db_name
           }
 
           env {
-            name  = "DB_USER"
+            name = "DB_USER"
             value = var.db_user
           }
 
           env {
-            name  = "DB_PASSWORD"
+            name = "DB_PASSWORD"
             value = var.db_password
           }
         }
