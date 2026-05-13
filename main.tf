@@ -259,14 +259,11 @@ resource "google_container_cluster" "gke" {
       display_name = "allow-all"
     }
   }
-
   depends_on = [
-    kubernetes_service_account.orchestrator,
-    google_sql_database_instance.db,
-    google_sql_database.app,
-    google_dns_record_set.db_a
-  ]
-
+  google_sql_database_instance.db,
+  google_sql_database.app,
+  google_dns_record_set.db_a
+]
 }
 
 resource "google_container_node_pool" "pool" {
@@ -357,7 +354,7 @@ provider "kubernetes" {
 resource "google_service_account" "orchestrator_sa" {
   account_id = "orchestrator-sa"
   display_name = "Orchestrator Service Account"
-  
+
   depends_on = [
     google_container_cluster.gke,
     google_container_node_pool.pool
