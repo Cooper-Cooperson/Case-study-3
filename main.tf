@@ -347,9 +347,7 @@ provider "kubernetes" {
   host                   = "https://${data.google_container_cluster.cluster.endpoint}"
   token                  = data.google_client_config.default.access_token
   cluster_ca_certificate = base64decode(data.google_container_cluster.cluster.master_auth[0].cluster_ca_certificate)
-
-
-  load_config_file       = false
+  #load_config_file       = false
 }
 resource "google_service_account" "orchestrator_sa" {
   account_id = "orchestrator-sa"
