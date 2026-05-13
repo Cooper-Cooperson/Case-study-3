@@ -260,6 +260,15 @@ resource "google_container_cluster" "gke" {
       display_name = "allow-all"
     }
   }
+
+  depends_on = [
+    kubernetes_namespace.platform,
+    kubernetes_service_account.orchestrator,
+    google_sql_database_instance.db,
+    google_sql_database.app,
+    google_dns_record_set.db_a
+  ]
+
 }
 
 resource "google_container_node_pool" "pool" {
