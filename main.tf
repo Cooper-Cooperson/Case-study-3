@@ -484,6 +484,11 @@ resource "kubernetes_deployment" "orchestrator" {
             value = var.db_password
           }
 
+          env {
+            name = "PROJECT_NUMBER"
+            value = var.project_number
+          }
+
           port {
             container_port = 8080
           }
