@@ -230,20 +230,6 @@ resource "google_project_iam_binding" "gke_artifact_registry" {
   ]
 }
 
-resource "google_service_account" "orchestrator_sa" {
-  account_id = "orchestrator-sa"
-  display_name = "Orchestrator Service Account"
-}
-
-resource "google_project_iam_binding" "orchestrator_sql_client" {
-  project = var.project_id
-  role = "roles/cloudsql.client"
-
-  members = [
-    "serviceAccount:${google_service_account.orchestrator_sa.email}",
-  ]
-}
-
 resource "google_container_cluster" "gke" {
   name     = "platform-gke"
   location = var.zone   # ZONAL CLUSTER
@@ -365,10 +351,27 @@ provider "kubernetes" {
   token                  = data.google_client_config.default.access_token
   cluster_ca_certificate = base64decode(data.google_container_cluster.cluster.master_auth[0].cluster_ca_certificate)
 
-  # This is the key
+
   load_config_file       = false
 }
+resource "google_service_account" "orchestrator_sa" {
+  account_id = "orchestrator-sa"
+  display_name = "Orchestrator Service Account"
+  
+  depends_on = [
+    google_container_cluster.gke,
+    google_container_node_pool.pool
+  ]
+}
 
+resource "google_project_iam_binding" "orchestrator_sql_client" {
+  project = var.project_id
+  role = "roles/cloudsql.client"
+
+  members = [
+    "serviceAccount:${google_service_account.orchestrator_sa.email}",
+  ]
+}
 # Self service portal
 resource "kubernetes_namespace" "platform" {
   metadata {
