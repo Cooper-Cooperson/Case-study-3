@@ -250,27 +250,57 @@ resource "google_logging_project_sink" "logs_to_bq" {
 }
 
 resource "google_sql_database_instance" "db" {
-  name = "app-db"
+  name             = "app-db"
   database_version = "POSTGRES_15"
-  region = var.zone
-  deletion_protection = false
-  depends_on = [
-    google_service_networking_connection.private_vpc_connection
-  ]
+  region           = var.region
 
   settings {
     tier = "db-custom-2-7680"
 
     ip_configuration {
-      ipv4_enabled = true
+      ipv4_enabled    = false
       private_network = google_compute_network.vpc.self_link
+    }
+  }
+
+  deletion_protection = false
+}
+
+resource "google_sql_database" "app" {
+  name  = var.db_name
+  instance = google_sql_database_instance.db.name
+}
+
+resource "google_sql_user" "app" {
+  name  = var.db_user
+  instance = google_sql_database_instance.db.name
+  password = var.db_password
+}
+
+#DNS voor DB 
+resource "google_dns_managed_zone" "db_internal" {
+  name = "db-internal-zone"
+  dns_name = "db.internal."
+  description = "Private zone for app DB"
+
+  visibility = "private"
+
+  private_visibility_config {
+    networks {
+      network_url = google_compute_network.vpc.self_link
     }
   }
 }
 
-resource "google_sql_database" "db_default" {
-  name = "app-db"
-  instance = google_sql_database_instance.db.name
+resource "google_dns_record_set" "db_a" {
+  name = "app-db.db.internal."
+  type = "A"
+  ttl = 300
+  managed_zone = google_dns_managed_zone.db_internal.name
+
+  rrdatas = [
+    google_sql_database_instance.db.ip_address[0].ip_address #IP van DB
+  ]
 }
 
 resource "google_storage_bucket" "app_data" {
@@ -365,56 +395,69 @@ resource "google_service_account" "orchestrator_sa" {
   display_name = "Orchestrator Service Account"
 }
 
-resource "google_project_iam_binding" "orchestrator_sql" {
+resource "google_project_iam_binding" "orchestrator_sql_client" {
   project = var.project_id
   role = "roles/cloudsql.client"
 
   members = [
-    "serviceAccount:${google_service_account.orchestrator_sa.email}"
+    "serviceAccount:${google_service_account.orchestrator_sa.email}",
   ]
 }
 
 resource "kubernetes_deployment" "orchestrator" {
   metadata {
-    name      = "provisioning-orchestrator"
-    namespace = kubernetes_namespace.platform.metadata[0].name
-    labels    = { app = "orchestrator" }
+    name = "provisioning-orchestrator"
+    namespace = "platform"
+    labels = {
+      app = "provisioning-orchestrator"
+    }
   }
 
   spec {
     replicas = 2
 
     selector {
-      match_labels = { app = "orchestrator" }
+      match_labels = {
+        app = "provisioning-orchestrator"
+      }
     }
 
     template {
-      metadata { labels = { app = "orchestrator" } }
+      metadata {
+        labels = {
+          app = "provisioning-orchestrator"
+        }
+      }
 
       spec {
-        service_account_name = kubernetes_service_account.orchestrator.metadata[0].name
+        service_account_name = google_service_account.orchestrator_sa.account_id
 
         container {
-          name = "orchestrator"
+          name  = "orchestrator"
           image = "europe-west1-docker.pkg.dev/${var.project_id}/platform/orchestrator:latest"
 
           env {
-            name  = "SUBSCRIPTION_ID"
-            value = "new-hire-orchestrator-sub"
-          }
-          
-          env {
-            name  = "PROJECT_ID"
+            name = "PROJECT_ID"
             value = var.project_id
           }
 
           env {
-            name  = "PROJECT_NUMBER"
-            value = var.project_number
+            name = "SUBSCRIPTION_ID"
+            value = google_pubsub_subscription.orchestrator_sub.name
           }
 
           env {
-            name  = "DB_NAME"
+            name = "DB_HOST"
+            value = "app-db.db.internal"
+          }
+
+          env {
+            name = "DB_PORT"
+            value = "5432"
+          }
+
+          env {
+            name = "DB_NAME"
             value = var.db_name
           }
 
@@ -423,38 +466,15 @@ resource "kubernetes_deployment" "orchestrator" {
             value = var.db_user
           }
 
-          env {   
+          env {
             name = "DB_PASSWORD"
             value = var.db_password
           }
 
-          env {
-            name = "DB_HOST"
-            value = "127.0.0.1"
+          ports {
+            container_port = 8080
           }
-
-          env {
-            name = "DB_PORT"
-            value = "5432"
-          }
-
-          port { container_port = 8080 }
         }
-
-        container {
-          name  = "cloud-sql-proxy"
-          image = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.0"
-
-        args = [
-          "${google_sql_database_instance.db.connection_name}",
-          "--port=5432",
-          "--private-ip"
-        ]
-
-        security_context {
-          run_as_non_root = true
-        }
-}
       }
     }
   }
