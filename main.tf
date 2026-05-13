@@ -187,9 +187,6 @@ resource "google_dns_record_set" "db_a" {
   ]
 }
 
-
-
-
 resource "google_pubsub_topic" "new_hire" {
   name = "new-hire-events"
 }
@@ -205,6 +202,20 @@ resource "kubernetes_service_account" "orchestrator" {
     name = "orchestrator-sa"
     namespace = kubernetes_namespace.platform.metadata[0].name
   }
+}
+
+resource "google_service_account" "orchestrator_sa" {
+  account_id = "orchestrator-sa"
+  display_name = "Orchestrator Service Account"
+}
+
+resource "google_project_iam_binding" "orchestrator_sql_client" {
+  project = var.project_id
+  role = "roles/cloudsql.client"
+
+  members = [
+    "serviceAccount:${google_service_account.orchestrator_sa.email}",
+  ]
 }
 
 resource "google_service_account" "gke_nodes" {
@@ -230,6 +241,11 @@ resource "google_project_iam_binding" "gke_artifact_registry" {
   ]
 }
 
+resource "kubernetes_namespace" "platform" {
+  metadata {
+    name = "platform"
+  }
+}
 
 resource "google_container_cluster" "gke" {
   name     = "platform-gke"
@@ -358,11 +374,6 @@ provider "kubernetes" {
 }
 
 # Self service portal
-resource "kubernetes_namespace" "platform" {
-  metadata {
-    name = "platform"
-  }
-}
 
 resource "kubernetes_deployment" "portal" {
   metadata {
@@ -412,20 +423,6 @@ resource "kubernetes_service" "portal_lb" {
 
     type = "LoadBalancer"
   }
-}
-
-resource "google_service_account" "orchestrator_sa" {
-  account_id = "orchestrator-sa"
-  display_name = "Orchestrator Service Account"
-}
-
-resource "google_project_iam_binding" "orchestrator_sql_client" {
-  project = var.project_id
-  role = "roles/cloudsql.client"
-
-  members = [
-    "serviceAccount:${google_service_account.orchestrator_sa.email}",
-  ]
 }
 
 resource "kubernetes_deployment" "orchestrator" {
