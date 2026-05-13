@@ -20,6 +20,14 @@ provider "google" {
   impersonate_service_account = var.service_account
 }
 
+provider "kubernetes" {
+  host = "https://${data.google_container_cluster.cluster.endpoint}"
+  token = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(data.google_container_cluster.cluster.master_auth[0].cluster_ca_certificate)
+
+  load_config_file       = false
+}
+
 # VPC
 resource "google_compute_network" "vpc" {
   name = "hub-vpc"
@@ -374,6 +382,10 @@ resource "kubernetes_namespace" "platform" {
   metadata {
     name = "platform"
   }
+  depends_on = [
+    google_container_cluster.gke,
+    google_container_node_pool.pool
+  ]
 }
 
 resource "kubernetes_deployment" "portal" {
@@ -452,7 +464,7 @@ resource "kubernetes_deployment" "orchestrator" {
       }
 
       spec {
-        service_account_name = google_service_account.orchestrator_sa.account_id
+        service_account_name = kubernetes_service_account.orchestrator.metadata[0].name
 
         container {
           name  = "orchestrator"
@@ -503,7 +515,9 @@ resource "kubernetes_deployment" "orchestrator" {
 
   depends_on = [
     kubernetes_namespace.platform,
-    kubernetes_service_account.orchestrator
+    kubernetes_service_account.orchestrator,
+    google_sql_database_instance.db,
+    google_dns_record_set.db_a
   ]
 }
 
