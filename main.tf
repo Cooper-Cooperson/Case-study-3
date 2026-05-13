@@ -53,11 +53,11 @@ resource "google_compute_subnetwork" "subnet_db" {
 }
 
 resource "google_compute_global_address" "private_ip_range" {
-  name          = "sql-private-ip-range"
-  purpose       = "VPC_PEERING"
-  address_type  = "INTERNAL"
+  name = "sql-private-ip-range"
+  purpose = "VPC_PEERING"
+  address_type = "INTERNAL"
   prefix_length = 20
-  network       = google_compute_network.vpc.self_link
+  network = google_compute_network.vpc.self_link
 }
 
 resource "google_service_networking_connection" "private_vpc_connection" {
@@ -116,8 +116,6 @@ resource "google_compute_firewall" "gke_ssh" {
   target_tags = ["gke-node"]
 }
 
-
-
 resource "google_sql_database_instance" "db" {
   name = "app-db"
   database_version = "POSTGRES_15"
@@ -140,12 +138,12 @@ resource "google_sql_database_instance" "db" {
 }
 
 resource "google_sql_database" "app" {
-  name  = var.db_name
+  name = var.db_name
   instance = google_sql_database_instance.db.name
 }
 
 resource "google_sql_user" "app" {
-  name  = var.db_user
+  name = var.db_user
   instance = google_sql_database_instance.db.name
   password = var.db_password
 }
@@ -212,7 +210,7 @@ resource "google_project_iam_binding" "gke_nodes_artifact_registry" {
 
 resource "google_project_iam_binding" "gke_artifact_registry" {
   project = var.project_id
-  role    = "roles/artifactregistry.reader"
+  role = "roles/artifactregistry.reader"
 
   members = [
     "serviceAccount:${google_container_node_pool.pool.node_config[0].service_account}"
@@ -220,21 +218,21 @@ resource "google_project_iam_binding" "gke_artifact_registry" {
 }
 
 resource "google_container_cluster" "gke" {
-  name     = "platform-gke"
+  name = "platform-gke"
   location = var.zone   # ZONAL CLUSTER
 
   networking_mode = "VPC_NATIVE"
 
-  network    = google_compute_network.vpc.self_link
+  network = google_compute_network.vpc.self_link
   subnetwork = google_compute_subnetwork.subnet_gke.self_link
 
   ip_allocation_policy {
-    cluster_secondary_range_name  = "gke-pods"
+    cluster_secondary_range_name = "gke-pods"
     services_secondary_range_name = "gke-services"
   }
 
   remove_default_node_pool = true
-  initial_node_count       = 1
+  initial_node_count = 1
 
   release_channel {
     channel = "REGULAR"
@@ -244,7 +242,7 @@ resource "google_container_cluster" "gke" {
 
   master_authorized_networks_config {
     cidr_blocks {
-      cidr_block   = "0.0.0.0/0"
+      cidr_block = "0.0.0.0/0"
       display_name = "allow-all"
     }
   }
@@ -333,8 +331,8 @@ data "google_container_cluster" "cluster" {
 }
 
 provider "kubernetes" {
-  host                   = "https://${data.google_container_cluster.cluster.endpoint}"
-  token                  = data.google_client_config.default.access_token
+  host = "https://${data.google_container_cluster.cluster.endpoint}"
+  token = data.google_client_config.default.access_token
   cluster_ca_certificate = base64decode(data.google_container_cluster.cluster.master_auth[0].cluster_ca_certificate)
   #load_config_file       = false
 }
@@ -399,6 +397,31 @@ resource "kubernetes_deployment" "portal" {
           name = "portal"
           image = "europe-west1-docker.pkg.dev/${var.project_id}/platform/portal:latest"
           port { container_port = 8080 }
+
+          env {
+            name  = "DB_HOST"
+            value = "app-db.db.internal"
+          }
+
+          env {
+            name  = "DB_PORT"
+            value = "5432"
+          }
+
+          env {
+            name  = "DB_NAME"
+            value = var.db_name
+          }
+
+          env {
+            name  = "DB_USER"
+            value = var.db_user
+          }
+
+          env {
+            name  = "DB_PASSWORD"
+            value = var.db_password
+          }
         }
       }
     }
@@ -456,7 +479,7 @@ resource "kubernetes_deployment" "orchestrator" {
         service_account_name = kubernetes_service_account.orchestrator.metadata[0].name
 
         container {
-          name  = "orchestrator"
+          name = "orchestrator"
           image = "europe-west1-docker.pkg.dev/${var.project_id}/platform/orchestrator:latest"
 
           env {
