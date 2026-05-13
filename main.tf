@@ -146,8 +146,7 @@ resource "google_sql_database_instance" "db" {
       private_network = google_compute_network.vpc.self_link
     }
   }
-  gcloud services enable servicenetworking.googleapis.com \
-  --project project-96521d1d-c0a7-4c19-b4c
+ 
   deletion_protection = false
 
   depends_on = [
