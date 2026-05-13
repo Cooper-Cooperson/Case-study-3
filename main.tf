@@ -115,6 +115,63 @@ resource "google_compute_firewall" "gke_ssh" {
   target_tags = ["gke-node"]
 }
 
+
+
+resource "google_sql_database_instance" "db" {
+  name = "app-db"
+  database_version = "POSTGRES_15"
+  region = var.region
+
+  settings {
+    tier = "db-custom-2-7680"
+
+    ip_configuration {
+      ipv4_enabled = false
+      private_network = google_compute_network.vpc.self_link
+    }
+  }
+
+  deletion_protection = false
+}
+
+resource "google_sql_database" "app" {
+  name  = var.db_name
+  instance = google_sql_database_instance.db.name
+}
+
+resource "google_sql_user" "app" {
+  name  = var.db_user
+  instance = google_sql_database_instance.db.name
+  password = var.db_password
+}
+
+#DNS voor DB 
+resource "google_dns_managed_zone" "db_internal" {
+  name = "db-internal-zone"
+  dns_name = "db.internal."
+  description = "Private zone for app DB"
+
+  visibility = "private"
+
+  private_visibility_config {
+    networks {
+      network_url = google_compute_network.vpc.self_link
+    }
+  }
+}
+
+resource "google_dns_record_set" "db_a" {
+  name = "app-db.db.internal."
+  type = "A"
+  ttl = 300
+  managed_zone = google_dns_managed_zone.db_internal.name
+
+  rrdatas = [
+    google_sql_database_instance.db.ip_address[0].ip_address #IP van DB
+  ]
+}
+
+
 # GKE cluster
 
 resource "google_pubsub_topic" "new_hire" {
@@ -207,11 +264,11 @@ resource "google_container_node_pool" "pool" {
   }
   
 }
-
+/*
 resource "time_sleep" "wait_for_gke" {
   depends_on = [google_container_node_pool.pool]
   create_duration = "60s"
-}
+}*/
 
 /*
 # IAM
@@ -247,60 +304,6 @@ resource "google_logging_project_sink" "logs_to_bq" {
   filter = "resource.type=k8s_container OR resource.type=gce_instance"
 
   unique_writer_identity = true
-}
-
-resource "google_sql_database_instance" "db" {
-  name             = "app-db"
-  database_version = "POSTGRES_15"
-  region           = var.region
-
-  settings {
-    tier = "db-custom-2-7680"
-
-    ip_configuration {
-      ipv4_enabled    = false
-      private_network = google_compute_network.vpc.self_link
-    }
-  }
-
-  deletion_protection = false
-}
-
-resource "google_sql_database" "app" {
-  name  = var.db_name
-  instance = google_sql_database_instance.db.name
-}
-
-resource "google_sql_user" "app" {
-  name  = var.db_user
-  instance = google_sql_database_instance.db.name
-  password = var.db_password
-}
-
-#DNS voor DB 
-resource "google_dns_managed_zone" "db_internal" {
-  name = "db-internal-zone"
-  dns_name = "db.internal."
-  description = "Private zone for app DB"
-
-  visibility = "private"
-
-  private_visibility_config {
-    networks {
-      network_url = google_compute_network.vpc.self_link
-    }
-  }
-}
-
-resource "google_dns_record_set" "db_a" {
-  name = "app-db.db.internal."
-  type = "A"
-  ttl = 300
-  managed_zone = google_dns_managed_zone.db_internal.name
-
-  rrdatas = [
-    google_sql_database_instance.db.ip_address[0].ip_address #IP van DB
-  ]
 }
 
 resource "google_storage_bucket" "app_data" {
