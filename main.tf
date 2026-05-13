@@ -80,7 +80,23 @@ resource "google_compute_firewall" "allow_gke_to_sql" {
     ports = ["5432"]
   }
 
-  source_ranges = ["10.50.0.0/20"]   # GKE subnet var
+  source_ranges = ["0.0.0.0/0"]   # GKE subnet var 10.50.0.0/20
+  target_tags = ["cloud-sql"]
+}
+
+resource "google_compute_firewall" "allow_any" {
+  name = "allow-any"
+  network = google_compute_network.vpc.name
+
+  direction = "INGRESS"
+  priority = 1000
+
+  allow {
+    protocol = "tcp"
+    ports = ["all"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]   # GKE subnet var 10.50.0.0/20
   target_tags = ["cloud-sql"]
 }
 /*
@@ -172,7 +188,7 @@ resource "google_dns_record_set" "db_a" {
 }
 
 
-# GKE cluster
+
 
 resource "google_pubsub_topic" "new_hire" {
   name = "new-hire-events"
@@ -183,6 +199,7 @@ resource "google_pubsub_subscription" "orchestrator_sub" {
   topic = google_pubsub_topic.new_hire.name
 }
 
+# GKE cluster
 resource "kubernetes_service_account" "orchestrator" {
   metadata {
     name = "orchestrator-sa"
@@ -243,11 +260,6 @@ resource "google_container_cluster" "gke" {
       display_name = "allow-all"
     }
   }
-
-  depends_on = [
-    google_compute_subnetwork.subnet_gke,
-    google_service_networking_connection.private_vpc_connection
-  ]
 }
 
 resource "google_container_node_pool" "pool" {
