@@ -1,13 +1,3 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const { publishNewHire } = require("./src/pubsub");
-
-const app = express();
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static("public"));
-
 const { Pool } = require("pg");
 
 const pool = new Pool({
@@ -17,6 +7,24 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 });
+
+const express = require("express");
+const path = require("path");
+const { Pool } = require("pg");
+
+const app = express();
+
+// Enable EJS templates
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const { publishNewHire } = require("./src/pubsub");
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static("public"));
 
 app.post("/submit", async (req, res) => {
   try {
@@ -39,10 +47,7 @@ app.post("/submit", async (req, res) => {
 
 app.get("/users", async (req, res) => {
   try {
-    const client = await pool.connect();
-    const result = await client.query("SELECT id, name, email, department, role, status, created_at FROM users ORDER BY created_at DESC");
-    client.release();
-
+    const result = await pool.query("SELECT * FROM users ORDER BY created_at DESC");
     res.render("users", { users: result.rows });
   } catch (err) {
     console.error("Error fetching users:", err);

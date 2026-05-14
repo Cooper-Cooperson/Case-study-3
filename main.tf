@@ -193,6 +193,10 @@ resource "kubernetes_service_account" "orchestrator" {
   metadata {
     name = "orchestrator-sa"
     namespace = kubernetes_namespace.platform.metadata[0].name
+
+    annotations = {
+      "iam.gke.io/gcp-service-account" = google_service_account.orchestrator_sa.email
+    }
   }
 }
 
@@ -227,6 +231,10 @@ resource "google_container_cluster" "gke" {
 
   network = google_compute_network.vpc.self_link
   subnetwork = google_compute_subnetwork.subnet_gke.self_link
+
+  workload_identity_config {
+  workload_pool = "${var.project_id}.svc.id.goog"
+  }
 
   ip_allocation_policy {
     cluster_secondary_range_name = "gke-pods"
