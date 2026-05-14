@@ -137,16 +137,18 @@ resource "google_sql_database_instance" "db" {
   ]
 }
 
-resource "google_sql_database" "app" {
-  name = var.db_name
-  instance = google_sql_database_instance.db.name
-}
-
 resource "google_sql_user" "app" {
   name = var.db_user
   instance = google_sql_database_instance.db.name
   password = var.db_password
 }
+
+resource "google_sql_database" "app" {
+  name = var.db_name
+  instance = google_sql_database_instance.db.name
+}
+
+
 
 #DNS voor DB 
 resource "google_dns_managed_zone" "db_internal" {
