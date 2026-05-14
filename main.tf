@@ -296,6 +296,10 @@ resource "google_container_node_pool" "pool" {
     service_account = google_service_account.gke_nodes.email
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
     tags = ["gke-node"]
+
+    workload_metadata_config {
+      mode = "GKE_METADATA"
+    }
   }
   
 }
@@ -378,6 +382,7 @@ resource "google_service_account" "orchestrator_sa" {
   ]
 }
 
+/*
 resource "google_project_iam_binding" "portal_pubsub_publisher" {
   project = var.project_id
   role = "roles/pubsub.publisher"
@@ -386,7 +391,7 @@ resource "google_project_iam_binding" "portal_pubsub_publisher" {
     "serviceAccount:${google_service_account.gke_nodes.email}"
   ]
 }
-
+*/
 resource "google_project_iam_binding" "orchestrator_sql_client" {
   project = var.project_id
   role = "roles/cloudsql.client"
@@ -435,7 +440,7 @@ resource "kubernetes_deployment" "portal" {
 
       spec {
         service_account_name = kubernetes_service_account.portal.metadata[0].name
-        
+
         container {
           name = "portal"
           image = "europe-west1-docker.pkg.dev/${var.project_id}/platform/portal:latest"
