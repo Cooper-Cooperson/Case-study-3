@@ -176,9 +176,6 @@ resource "google_dns_record_set" "db_a" {
   ]
 }
 
-
-
-
 resource "google_pubsub_topic" "new_hire" {
   name = "new-hire-events"
 }
@@ -243,6 +240,20 @@ resource "kubernetes_service_account" "portal" {
       "iam.gke.io/gcp-service-account" = google_service_account.portal_sa.email
     }
   }
+}
+
+resource "google_service_account_iam_member" "portal_workload_identity" {
+  service_account_id = google_service_account.portal_sa.name
+  role = "roles/iam.workloadIdentityUser"
+
+  member = "serviceAccount:${var.project_id}.svc.id.goog[platform/portal-sa]"
+}
+
+resource "google_service_account_iam_member" "orchestrator_workload_identity" {
+  service_account_id = google_service_account.orchestrator_sa.name
+  role = "roles/iam.workloadIdentityUser"
+
+  member = "serviceAccount:${var.project_id}.svc.id.goog[platform/orchestrator-sa]"
 }
 
 resource "google_container_cluster" "gke" {
