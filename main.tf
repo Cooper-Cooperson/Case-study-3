@@ -425,7 +425,6 @@ resource "kubernetes_deployment" "portal" {
 
   spec {
     replicas = 2
-    service_account_name = kubernetes_service_account.portal.metadata[0].name
     selector {
       match_labels = { app = "portal" }
       
@@ -435,6 +434,8 @@ resource "kubernetes_deployment" "portal" {
       metadata { labels = { app = "portal" } }
 
       spec {
+        service_account_name = kubernetes_service_account.portal.metadata[0].name
+        
         container {
           name = "portal"
           image = "europe-west1-docker.pkg.dev/${var.project_id}/platform/portal:latest"
