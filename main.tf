@@ -223,6 +223,28 @@ resource "google_project_iam_binding" "gke_artifact_registry" {
   ]
 }
 
+resource "google_service_account" "portal_sa" {
+  account_id   = "portal-sa"
+  display_name = "Portal Service Account"
+}
+
+resource "google_project_iam_member" "portal_pubsub_publisher" {
+  project = var.project_id
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.portal_sa.email}"
+}
+
+resource "kubernetes_service_account" "portal" {
+  metadata {
+    name      = "portal-sa"
+    namespace = kubernetes_namespace.platform.metadata[0].name
+
+    annotations = {
+      "iam.gke.io/gcp-service-account" = google_service_account.portal_sa.email
+    }
+  }
+}
+
 resource "google_container_cluster" "gke" {
   name = "platform-gke"
   location = var.zone   # ZONAL CLUSTER
@@ -403,9 +425,10 @@ resource "kubernetes_deployment" "portal" {
 
   spec {
     replicas = 2
-
+    service_account_name = kubernetes_service_account.portal.metadata[0].name
     selector {
       match_labels = { app = "portal" }
+      
     }
 
     template {

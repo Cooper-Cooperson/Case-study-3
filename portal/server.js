@@ -1,5 +1,21 @@
+const express = require("express");
+const path = require("path");
+const bodyParser = require("body-parser");
+const cors = require("cors");
 const { Pool } = require("pg");
+const { publishNewHire } = require("./src/pubsub");
 
+const app = express();
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
+
+// DATABASE CONNECTION
 const pool = new Pool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -8,24 +24,13 @@ const pool = new Pool({
   database: process.env.DB_NAME,
 });
 
-const express = require("express");
-const path = require("path");
-const { Pool } = require("pg");
 
-const app = express();
+// Main page (New Hire Form)
+app.get("/", (req, res) => {
+  res.render("index");
+});
 
-// Enable EJS templates
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const { publishNewHire } = require("./src/pubsub");
-
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static("public"));
-
+// Submit new hire
 app.post("/submit", async (req, res) => {
   try {
     const { name, email, department, role } = req.body;
@@ -45,9 +50,13 @@ app.post("/submit", async (req, res) => {
   }
 });
 
+// Users list
 app.get("/users", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM users ORDER BY created_at DESC");
+    const result = await pool.query(
+      "SELECT * FROM users ORDER BY created_at DESC"
+    );
+
     res.render("users", { users: result.rows });
   } catch (err) {
     console.error("Error fetching users:", err);
