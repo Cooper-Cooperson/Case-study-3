@@ -266,7 +266,7 @@ resource "google_service_account_iam_member" "orchestrator_workload_identity" {
 resource "google_container_cluster" "gke" {
   name = "platform-gke"
   location = var.zone   # ZONAL CLUSTER
-
+  enable_autopilot = false
   networking_mode = "VPC_NATIVE"
 
   network = google_compute_network.vpc.self_link
