@@ -192,6 +192,7 @@ resource "google_pubsub_subscription" "user_deleted_sub" {
   topic = google_pubsub_topic.user_deleted.name
 }
 */
+
 # GKE cluster
 resource "kubernetes_service_account" "orchestrator" {
   metadata {
@@ -447,7 +448,7 @@ resource "kubernetes_deployment" "portal" {
   }
 
   spec {
-    replicas = 2
+    replicas = 1 #2 
     selector {
       match_labels = { app = "portal" }
       
@@ -526,7 +527,7 @@ resource "kubernetes_deployment" "orchestrator" {
   }
 
   spec {
-    replicas = 2
+    replicas = 1 #2
 
     selector {
       match_labels = {
