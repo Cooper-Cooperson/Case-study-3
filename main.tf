@@ -183,6 +183,15 @@ resource "google_pubsub_subscription" "orchestrator_sub" {
   topic = google_pubsub_topic.new_hire.name
 }
 
+resource "google_pubsub_topic" "user_deleted" {
+  name = "user-deleted-events"
+}
+
+resource "google_pubsub_subscription" "user_deleted_sub" {
+  name = "user-deleted-orchestrator-sub"
+  topic = google_pubsub_topic.user_deleted.name
+}
+
 # GKE cluster
 resource "kubernetes_service_account" "orchestrator" {
   metadata {

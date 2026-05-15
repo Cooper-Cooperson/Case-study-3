@@ -3,7 +3,7 @@ const path = require("path");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const { Pool } = require("pg");
-const { publishNewHire } = require("./src/pubsub");
+const { publishNewHire, publishUserDeleted } = require("./src/pubsub");
 
 const app = express();
 
@@ -64,15 +64,11 @@ app.get("/users", async (req, res) => {
   }
 });
 
-app.listen(8080, () => {
-  console.log("HR Portal running on port 8080");
-});
-
 // Fire
 app.post("/delete-user", async (req, res) => {
   try {
     const { email } = req.body;
-
+  
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
     }
@@ -83,16 +79,19 @@ app.post("/delete-user", async (req, res) => {
     );
 
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).send("User not found");
     }
 
-    res.json({ message: "User deleted successfully", deleted: result.rows[0] });
+    await publishUserDeleted(email);
+
+    // Redirect back to index
+    res.redirect("/");
   } catch (err) {
     console.error("Error deleting user:", err);
-    res.status(500).json({ error: "Failed to delete user" });
+    res.status(500).send("Failed to delete user");
   }
 });
 
-app.get("/delete", (req, res) => {
-  res.render("delete");
+app.listen(8080, () => {
+  console.log("HR Portal running on port 8080");
 });

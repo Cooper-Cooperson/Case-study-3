@@ -9,4 +9,19 @@ async function publishNewHire(data) {
   console.log("Published new hire event:", data.email);
 }
 
-module.exports = { publishNewHire };
+async function publishUserDeleted(email) {
+  const topic = pubsub.topic("user-deleted-events");
+
+  const message = {
+    email,
+    timestamp: new Date().toISOString()
+  };
+
+  await topic.publishMessage({ json: message });
+  console.log("Published user deleted event:", message);
+}
+
+module.exports = {
+  publishNewHire,
+  publishUserDeleted
+};

@@ -1,8 +1,6 @@
 import json
 import logging
 from . import db
-from .identity import simulate_cloud_identity_user, simulate_add_to_groups
-from .iam import simulate_assign_iam_roles
 
 logger = logging.getLogger(__name__)
 
@@ -18,32 +16,25 @@ def handle_new_hire(message_data: bytes):
         "status": "PENDING",
     }
 
-    # Persist in DB
+ # Persist in DB
     try:
         user_id = db.insert_user(user)
         logger.info("[ORCH] User stored in DB with id=%s", user_id)
     except Exception:
         logger.exception("Failed to insert user into DB")
         raise
+    
+def handle_user_deleted(message_data: bytes):
+    payload = json.loads(message_data.decode("utf-8"))
+    email = payload.get("email")
 
-    # Simulate Cloud Identity user creation
-    try:
-        primary_email = simulate_cloud_identity_user(user)
-    except Exception:
-        logger.exception("Simulated Cloud Identity creation failed")
-        raise
+    logger.info(f"[ORCH] Received user deleted event: {email}")
 
-    # Simulate IAM roles
-    try:
-        simulate_assign_iam_roles(primary_email)
-    except Exception:
-        logger.exception("Simulated IAM role assignment failed")
-        raise
+    conn = db.get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM users WHERE email = %s", (email,))
+    conn.commit()
+    cur.close()
+    conn.close()
 
-    # Simulate group membership
-    try:
-        simulate_add_to_groups(primary_email)
-    except Exception:
-        logger.exception("Simulated group assignment failed")
-
-    logger.info("[ORCH] Finished simulated provisioning for: %s", primary_email)
+    logger.info(f"[ORCH] Deleted user from DB: {email}")
