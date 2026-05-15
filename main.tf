@@ -266,7 +266,9 @@ resource "google_service_account_iam_member" "orchestrator_workload_identity" {
 resource "google_container_cluster" "gke" {
   name = "platform-gke"
   location = var.zone   # ZONAL CLUSTER
+
   enable_autopilot = false
+  
   networking_mode = "VPC_NATIVE"
 
   network = google_compute_network.vpc.self_link
@@ -281,12 +283,13 @@ resource "google_container_cluster" "gke" {
     services_secondary_range_name = "gke-services"
   }
 
-  remove_default_node_pool = true
   initial_node_count = 1
 
   release_channel {
     channel = "REGULAR"
   }
+
+  remove_default_node_pool = true
 
   deletion_protection = false
 
