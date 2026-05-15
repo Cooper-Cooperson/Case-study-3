@@ -264,37 +264,35 @@ resource "google_service_account_iam_member" "orchestrator_workload_identity" {
 }
 
 resource "google_container_cluster" "gke" {
-  name     = "platform-gke"
-  location = var.zone
-
-  enable_autopilot = false  
-
+  name = "platform-gke"
+  location = var.zone   # ZONAL CLUSTER
   networking_mode = "VPC_NATIVE"
 
-  network    = google_compute_network.vpc.self_link
+  network = google_compute_network.vpc.self_link
   subnetwork = google_compute_subnetwork.subnet_gke.self_link
 
   workload_identity_config {
-    workload_pool = "${var.project_id}.svc.id.goog"
+  workload_pool = "${var.project_id}.svc.id.goog"
   }
 
   ip_allocation_policy {
-    cluster_secondary_range_name  = "gke-pods"
+    cluster_secondary_range_name = "gke-pods"
     services_secondary_range_name = "gke-services"
   }
 
-  remove_default_node_pool = true
-  initial_node_count       = 1
+  initial_node_count = 1
 
   release_channel {
     channel = "REGULAR"
   }
 
+  remove_default_node_pool = true
+
   deletion_protection = false
 
   master_authorized_networks_config {
     cidr_blocks {
-      cidr_block   = "0.0.0.0/0"
+      cidr_block = "0.0.0.0/0"
       display_name = "allow-all"
     }
   }
