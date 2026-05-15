@@ -148,8 +148,6 @@ resource "google_sql_database" "app" {
   instance = google_sql_database_instance.db.name
 }
 
-
-
 #DNS voor DB 
 resource "google_dns_managed_zone" "db_internal" {
   name = "db-internal-zone"

@@ -67,3 +67,32 @@ app.get("/users", async (req, res) => {
 app.listen(8080, () => {
   console.log("HR Portal running on port 8080");
 });
+
+// Fire
+app.post("/delete-user", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const result = await pool.query(
+      "DELETE FROM users WHERE email = $1 RETURNING *",
+      [email]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ message: "User deleted successfully", deleted: result.rows[0] });
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+});
+
+app.get("/delete", (req, res) => {
+  res.render("delete");
+});

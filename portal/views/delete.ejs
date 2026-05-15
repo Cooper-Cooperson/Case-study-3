@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Delete User</title>
+  <style>
+    body { font-family: Arial; margin: 40px; }
+    input { width: 300px; padding: 10px; margin: 10px 0; }
+    button { padding: 10px 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>Delete User</h1>
+  <p><a href="/">← Back to Home</a></p>
+
+  <form action="/delete-user" method="POST">
+    <input type="email" name="email" placeholder="Email address" required />
+    <button type="submit">Delete User</button>
+  </form>
+
+</body>
+</html>
