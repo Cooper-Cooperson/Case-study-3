@@ -125,7 +125,7 @@ resource "google_compute_firewall" "gke_ssh" {
     ports = ["22"]
   }
 
-  source_ranges = [var.school_ip]
+  source_ranges = ["0.0.0.0/0"] #var.school_ip
   target_tags = ["gke-node"]
 }
 
