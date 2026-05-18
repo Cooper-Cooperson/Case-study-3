@@ -84,6 +84,19 @@ resource "google_compute_firewall" "allow_gke_to_sql" {
   target_tags = ["cloud-sql"]
 }
 
+resource "google_compute_firewall" "openuem_http" {
+  name    = "allow-openuem-http"
+  network = google_compute_network.vpc.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80", "443"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["openuem"]
+}
+
 /*
 resource "google_compute_firewall" "deny_all_to_sql" {
   name = "deny-all-to-sql"
@@ -116,6 +129,40 @@ resource "google_compute_firewall" "gke_ssh" {
   target_tags = ["gke-node"]
 }
 
+# UEM (Intune alternatief)
+resource "google_compute_instance" "openuem" {
+  name = "openuem-server"
+  machine_type = "e2-medium"
+  zone = var.zone
+
+  boot_disk {
+    initialize_params {
+      image = "ubuntu-os-cloud/ubuntu-2204-lts"
+      size = 50
+    }
+  }
+
+  network_interface {
+    network = google_compute_network.vpc.self_link
+    subnetwork = google_compute_subnetwork.subnet_gke.self_link
+    access_config {}
+  }
+
+  metadata_startup_script = <<-EOF
+    #!/bin/bash
+    apt-get update
+    apt-get install -y docker.io docker-compose git
+
+    git clone https://github.com/openuem/openuem-docker /opt/openuem
+    cd /opt/openuem
+
+    docker-compose up -d
+  EOF
+
+  tags = ["openuem"]
+}
+
+# DB
 resource "google_sql_database_instance" "db" {
   name = "app-db"
   database_version = "POSTGRES_15"
@@ -191,7 +238,6 @@ resource "google_pubsub_subscription" "user_deleted_sub" {
   name = "user-deleted-orchestrator-sub"
   topic = google_pubsub_topic.user_deleted.name
 }
-
 
 # GKE cluster
 resource "kubernetes_service_account" "orchestrator" {
