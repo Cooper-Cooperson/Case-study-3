@@ -65,10 +65,6 @@ app.get("/users", async (req, res) => {
 });
 
 // Fire
-app.get("/delete", (req, res) => {
-  res.render("delete");
-});
-
 app.post("/delete-user", async (req, res) => {
   try {
     const { email } = req.body;
