@@ -494,7 +494,7 @@ resource "kubernetes_deployment" "portal" {
   }
 
   spec {
-    replicas = 1 #2 
+    replicas = 2  
     selector {
       match_labels = { app = "portal" }
       
@@ -573,7 +573,7 @@ resource "kubernetes_deployment" "orchestrator" {
   }
 
   spec {
-    replicas = 1 #2
+    replicas = 2
 
     selector {
       match_labels = {
