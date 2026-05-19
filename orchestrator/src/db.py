@@ -60,5 +60,6 @@ def insert_user(user: dict):
         new_id = cur.fetchone()["id"]
         logger.info("User inserted with ID %s", new_id)
         logger.info("User persisted in DB: %s", user["email"])
+        return new_id
     finally:
         conn.close()

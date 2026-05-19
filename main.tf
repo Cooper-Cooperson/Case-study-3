@@ -43,6 +43,16 @@ resource "google_compute_subnetwork" "subnet_gke" {
   }
 }
 
+resource "google_compute_subnetwork" "subnet_public" {
+  name          = "subnet-public"
+  ip_cidr_range = "10.60.0.0/20"
+  region        = var.region
+  network = google_compute_network.vpc.self_link
+
+  # Enable external traffic
+  private_ip_google_access = false
+}
+
 resource "google_compute_subnetwork" "subnet_db" {
   name = "subnet-db"
   ip_cidr_range = "10.20.0.0/20"
@@ -144,7 +154,7 @@ resource "google_compute_instance" "openuem" {
 
   network_interface {
     network = google_compute_network.vpc.self_link
-    subnetwork = google_compute_subnetwork.subnet_db.self_link
+    subnetwork = google_compute_subnetwork.subnet_public.self_link
     access_config {}
   }
 
@@ -308,6 +318,12 @@ resource "google_service_account_iam_member" "orchestrator_workload_identity" {
   role = "roles/iam.workloadIdentityUser"
 
   member = "serviceAccount:${var.project_id}.svc.id.goog[platform/orchestrator-sa]"
+}
+
+resource "google_service_account_iam_member" "orchestrator_wi" {
+  service_account_id = google_service_account.orchestrator_sa.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "serviceAccount:${var.project_id}.svc.id.goog[platform/orchestrator-sa]"
 }
 
 resource "google_container_cluster" "gke" {
