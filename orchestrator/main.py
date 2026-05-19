@@ -1,4 +1,5 @@
 import logging
+import json
 from google.cloud import pubsub_v1, logging as cloud_logging
 from src import config, handler, db
 from src.handler import handle_new_hire, handle_user_deleted

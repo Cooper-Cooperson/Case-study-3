@@ -125,7 +125,7 @@ resource "google_compute_firewall" "gke_ssh" {
     ports = ["22"]
   }
 
-  source_ranges = ["0.0.0.0/0", var.school_ip] #var.school_ip
+  source_ranges = ["0.0.0.0/0", var.school_ip] 
   #target_tags = ["gke-node"]
 }
 
@@ -144,7 +144,7 @@ resource "google_compute_instance" "openuem" {
 
   network_interface {
     network = google_compute_network.vpc.self_link
-    subnetwork = google_compute_subnetwork.subnet_gke.self_link
+    subnetwork = google_compute_subnetwork.subnet_db.self_link
     access_config {}
   }
 
