@@ -158,16 +158,33 @@ resource "google_compute_instance" "openuem" {
     access_config {}
   }
 
-  metadata_startup_script = <<-EOF
-    #!/bin/bash
-    apt-get update
-    apt-get install -y docker.io docker-compose git
+metadata_startup_script = <<-EOF
+  #!/bin/bash
+  set -e
 
+  # Log everything
+  exec > /var/log/openuem-startup.log 2>&1
+
+  apt-get update -y
+  apt-get install -y docker.io docker-compose git
+
+  systemctl enable docker
+  systemctl start docker
+
+  # Clone only if not already present
+  if [ ! -d /opt/openuem ]; then
     git clone https://github.com/openuem/openuem-docker /opt/openuem
-    cd /opt/openuem
+  fi
 
-    docker-compose up -d
-  EOF
+  cd /opt/openuem
+
+  # Ensure restart policies survive reboot
+  sed -i 's/restart: .*/restart: always/' docker-compose.yml || true
+
+  # Start OpenUEM
+  docker-compose pull
+  docker-compose up -d
+EOF
 
   tags = ["openuem"]
 }
@@ -649,6 +666,11 @@ resource "kubernetes_deployment" "orchestrator" {
           env {
             name = "PROJECT_NUMBER"
             value = var.project_number
+          }
+
+          env {
+            name  = "USER_DELETED_SUBSCRIPTION_ID"
+            value = google_pubsub_subscription.user_deleted_sub.name
           }
 
           port {

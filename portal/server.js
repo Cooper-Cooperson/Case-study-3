@@ -24,7 +24,6 @@ const pool = new Pool({
   database: process.env.DB_NAME,
 });
 
-
 // Main page (New Hire Form)
 app.get("/", (req, res) => {
   res.render("index");
@@ -64,36 +63,24 @@ app.get("/users", async (req, res) => {
   }
 });
 
-// Fire
-
-app.get("/delete", (req, res) => {
-  res.render("delete");
-});
-
-app.post("/delete-user", async (req, res) => {
+// Delete user
+app.post("/users/:id/delete", async (req, res) => {
   try {
-    const { email } = req.body;
-  
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
-    }
+    const { id } = req.params;
 
-    const result = await pool.query(
-      "DELETE FROM users WHERE email = $1 RETURNING *",
-      [email]
-    );
-
-    if (result.rowCount === 0) {
+    const result = await pool.query("SELECT email FROM users WHERE id = $1", [id]);
+    if (result.rows.length === 0) {
       return res.status(404).send("User not found");
     }
 
+    const email = result.rows[0].email;
+
     await publishUserDeleted(email);
 
-    // Redirect back to index
-    res.redirect("/");
+    res.redirect("/users");
   } catch (err) {
     console.error("Error deleting user:", err);
-    res.status(500).send("Failed to delete user");
+    res.status(500).send("Error deleting user");
   }
 });
 

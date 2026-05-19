@@ -4,6 +4,7 @@ from . import db
 
 logger = logging.getLogger(__name__)
 
+
 def handle_new_hire(message_data: bytes):
     payload = json.loads(message_data.decode("utf-8"))
     logger.info("[ORCH] Received new hire event: %s", payload)
@@ -13,15 +14,15 @@ def handle_new_hire(message_data: bytes):
         "email": payload.get("email"),
         "department": payload.get("department"),
         "role": payload.get("role"),
-        "status": "PENDING",
+        "status": payload.get("status") or "PENDING",
     }
 
-    # Persist in DB
     try:
         user_id = db.insert_user(user)
-        logger.info("[ORCH] User stored in DB with id=%s", user_id)
+        logger.info("[ORCH] User stored/updated in DB with id=%s", user_id)
     except Exception:
         logger.exception("Failed to insert user into DB")
+        # we log and re-raise so Pub/Sub can retry if needed
         raise
 
 
@@ -29,12 +30,11 @@ def handle_user_deleted(message_data: bytes):
     payload = json.loads(message_data.decode("utf-8"))
     email = payload.get("email")
 
-    logger.info(f"[ORCH] Received user deleted event: {email}")
+    logger.info("[ORCH] Received user deleted event: %s", email)
 
-    conn = db.get_connection()   # FIXED
     try:
-        with conn, conn.cursor() as cur:
-            cur.execute("DELETE FROM users WHERE email = %s", (email,))
-        logger.info(f"[ORCH] Deleted user from DB: {email}")
-    finally:
-        conn.close()
+        deleted = db.delete_user_by_email(email)
+        logger.info("[ORCH] Deleted %s user(s) from DB for email=%s", deleted, email)
+    except Exception:
+        logger.exception("Failed to delete user from DB")
+        raise
