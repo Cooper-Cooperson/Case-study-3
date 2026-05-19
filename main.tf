@@ -66,6 +66,7 @@ resource "google_compute_route" "default_internet" {
   name        = "default-internet-route"
   network     = google_compute_network.vpc.name
   dest_range  = "0.0.0.0/0"
+  next_hop_ip  = "0.0.0.0/0"
   priority    = 1000
 }
 
