@@ -174,19 +174,19 @@ resource "google_compute_instance" "openuem" {
 
 # DB
 resource "google_sql_database_instance" "db" {
-  name = "app-db"
+  name             = "app-db"
   database_version = "POSTGRES_15"
-  region = var.region
+  region           = var.region
 
   settings {
     tier = "db-custom-2-7680"
 
     ip_configuration {
-      ipv4_enabled = false
-      private_network = google_compute_subnetwork.subnet_db.self_link
+      ipv4_enabled    = false
+      private_network = google_compute_network.vpc.self_link
     }
   }
- 
+
   deletion_protection = false
 
   depends_on = [
