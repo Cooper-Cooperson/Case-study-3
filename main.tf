@@ -117,6 +117,20 @@ resource "google_compute_firewall" "openuem_http" {
   target_tags = ["openuem"]
 }
 
+resource "google_compute_firewall" "allow_egress_internet" {
+  name    = "allow-egress-internet"
+  network = google_compute_network.vpc.name
+
+  direction = "EGRESS"
+  priority  = 1000
+
+  allow {
+    protocol = "all"
+  }
+
+  destination_ranges = ["0.0.0.0/0"]
+}
+
 /*
 resource "google_compute_firewall" "deny_all_to_sql" {
   name = "deny-all-to-sql"
@@ -183,7 +197,7 @@ metadata_startup_script = <<-EOF
 
   # Clone only if not already present
   if [ ! -d /opt/openuem ]; then
-    git clone https://github.com/openuem/openuem-docker /opt/openuem
+    git clone https://github.com/OpenUEM/OpenUEM-Docker /opt/openuem
   fi
 
   cd /opt/openuem
