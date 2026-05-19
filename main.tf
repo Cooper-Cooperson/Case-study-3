@@ -27,10 +27,10 @@ resource "google_compute_network" "vpc" {
 }
 
 resource "google_compute_subnetwork" "subnet_gke" {
-  name          = "subnet-gke"
+  name = "subnet-gke"
   ip_cidr_range = "10.50.0.0/20"
-  region        = var.region
-  network       = google_compute_network.vpc.self_link
+  region = var.region
+  network = google_compute_network.vpc.self_link
 
   secondary_ip_range {
     range_name    = "gke-pods"
@@ -38,15 +38,15 @@ resource "google_compute_subnetwork" "subnet_gke" {
   }
 
   secondary_ip_range {
-    range_name    = "gke-services"
+    range_name = "gke-services"
     ip_cidr_range = "10.52.0.0/24"
   }
 }
 
 resource "google_compute_subnetwork" "subnet_public" {
-  name          = "subnet-public"
+  name = "subnet-public"
   ip_cidr_range = "10.60.0.0/20"
-  region        = var.region
+  region = var.region
   network = google_compute_network.vpc.self_link
 
   # Enable external traffic
@@ -60,6 +60,14 @@ resource "google_compute_subnetwork" "subnet_db" {
   network = google_compute_network.vpc.self_link
   #network = google_compute_network.vpc.id
   #private_network = google_compute_network.vpc.self_link
+}
+
+resource "google_compute_route" "default_internet" {
+  name        = "default-internet-route"
+  network     = google_compute_network.vpc.name
+  dest_range  = "0.0.0.0/0"
+  next_hop_internet = true
+  priority    = 1000
 }
 
 resource "google_compute_global_address" "private_ip_range" {
@@ -95,16 +103,16 @@ resource "google_compute_firewall" "allow_gke_to_sql" {
 }
 
 resource "google_compute_firewall" "openuem_http" {
-  name    = "allow-openuem-http"
+  name = "allow-openuem-http"
   network = google_compute_network.vpc.name
 
   allow {
     protocol = "tcp"
-    ports    = ["80", "443"]
+    ports = ["80", "443"]
   }
 
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["openuem"]
+  target_tags = ["openuem"]
 }
 
 /*
@@ -191,15 +199,15 @@ EOF
 
 # DB
 resource "google_sql_database_instance" "db" {
-  name             = "app-db"
+  name = "app-db"
   database_version = "POSTGRES_15"
-  region           = var.region
+  region = var.region
 
   settings {
     tier = "db-custom-2-7680"
 
     ip_configuration {
-      ipv4_enabled    = false
+      ipv4_enabled = false
       private_network = google_compute_network.vpc.self_link
     }
   }
@@ -248,6 +256,7 @@ resource "google_dns_record_set" "db_a" {
   ]
 }
 
+# Pub/Sub
 resource "google_pubsub_topic" "new_hire" {
   name = "new-hire-events"
 }

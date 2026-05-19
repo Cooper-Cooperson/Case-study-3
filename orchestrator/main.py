@@ -1,8 +1,7 @@
-import logging
 import os
-from concurrent.futures import TimeoutError
-
+import logging
 from google.cloud import pubsub_v1
+from concurrent.futures import TimeoutError
 
 from src.handler import handle_new_hire, handle_user_deleted
 from src import db
@@ -11,11 +10,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 PROJECT_ID = os.getenv("PROJECT_ID")
-NEW_HIRE_SUBSCRIPTION_ID = os.getenv("SUBSCRIPTION_ID")  # existing env
+NEW_HIRE_SUBSCRIPTION_ID = os.getenv("SUBSCRIPTION_ID")
 USER_DELETED_SUBSCRIPTION_ID = os.getenv("USER_DELETED_SUBSCRIPTION_ID")
 
 
 def main():
+    # Ensure DB schema exists
     db.init_schema()
 
     subscriber = pubsub_v1.SubscriberClient()
@@ -27,42 +27,36 @@ def main():
         PROJECT_ID, USER_DELETED_SUBSCRIPTION_ID
     )
 
-    def new_hire_callback(message: pubsub_v1.subscriber.message.Message):
-        logger.info("Received message on new hire subscription")
+    def new_hire_callback(message):
+        logger.info("Received NEW HIRE message")
         try:
             handle_new_hire(message.data)
             message.ack()
         except Exception:
-            logger.exception("Error processing new hire message")
-            # let Pub/Sub retry
+            logger.exception("Error processing NEW HIRE message")
             message.nack()
 
-    def user_deleted_callback(message: pubsub_v1.subscriber.message.Message):
-        logger.info("Received message on user deleted subscription")
+    def user_deleted_callback(message):
+        logger.info("Received USER DELETED message")
         try:
             handle_user_deleted(message.data)
             message.ack()
         except Exception:
-            logger.exception("Error processing user deleted message")
+            logger.exception("Error processing USER DELETED message")
             message.nack()
 
-    new_hire_future = subscriber.subscribe(new_hire_path, callback=new_hire_callback)
-    user_deleted_future = subscriber.subscribe(
-        user_deleted_path, callback=user_deleted_callback
-    )
+    subscriber.subscribe(new_hire_path, callback=new_hire_callback)
+    subscriber.subscribe(user_deleted_path, callback=user_deleted_callback)
 
-    logger.info(
-        "Listening on %s and %s",
-        new_hire_path,
-        user_deleted_path,
-    )
+    logger.info("Listening on Pub/Sub subscriptions:")
+    logger.info(f" - New Hire: {new_hire_path}")
+    logger.info(f" - User Deleted: {user_deleted_path}")
 
     try:
-        new_hire_future.result()
-        user_deleted_future.result()
-    except TimeoutError:
-        new_hire_future.cancel()
-        user_deleted_future.cancel()
+        while True:
+            pass
+    except KeyboardInterrupt:
+        logger.info("Shutting down orchestrator…")
 
 
 if __name__ == "__main__":
