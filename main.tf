@@ -63,11 +63,13 @@ resource "google_compute_subnetwork" "subnet_db" {
 }
 
 resource "google_compute_route" "default_internet" {
-  name        = "default-internet-route"
-  network     = google_compute_network.vpc.name
-  dest_range  = "0.0.0.0/0"
-  next_hop_ip  = "0.0.0.0/0"
-  priority    = 1000
+  name       = "default-internet-route"
+  network    = google_compute_network.vpc.name
+  dest_range = "0.0.0.0/0"
+
+  next_hop_gateway = "default-internet-gateway"
+
+  priority = 1000
 }
 
 resource "google_compute_global_address" "private_ip_range" {
